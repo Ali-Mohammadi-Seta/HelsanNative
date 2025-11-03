@@ -43,7 +43,7 @@ const Header: React.FC<HeaderProps> = ({ title, showBack, onBackPress }) => {
         resizeMode="contain"
       />
       <View>
-        <Text className="text-base font-bold text-primary">
+        <Text className={`text-base font-bold text-primary ${isRTL  ? "text-right" : "text-left" } `}>
           {t('logoTitle')}
         </Text>
         <Text className={`text-[9px] font-sans -mt-0.5 ${isDark ? 'text-text-dark-secondary' : 'text-gray-600'}`}>

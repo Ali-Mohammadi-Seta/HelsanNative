@@ -20,7 +20,7 @@ const { width } = Dimensions.get('window');
 export default function HomeScreen() {
   const { t, i18n } = useTranslation();
   const { colors, isDark } = useTheme();
-  
+
   const isRTL = i18n.language === 'fa';
 
   const categories: Array<{
@@ -79,7 +79,7 @@ export default function HomeScreen() {
   return (
     <StyledView className="flex-1">
       <Header />
-      
+
       <StyledScrollView
         className="flex-1"
         style={{ backgroundColor: isDark ? colors.background : '#f9fafb' }}
@@ -104,7 +104,7 @@ export default function HomeScreen() {
                   {t('homePage.consultationBannerButton')}
                 </StyledButton>
               </StyledView>
-              <StyledImage 
+              <StyledImage
                 source={require('@/assets/images/5 (1).png')}
                 className="w-[100px] h-[100px]"
                 resizeMode="contain"
@@ -136,7 +136,7 @@ export default function HomeScreen() {
                   className="w-10 h-10 mb-2"
                   resizeMode="contain"
                 />
-                <StyledText className={`text-base font-['IRANSans-Bold'] text-orange-900 mb-2 ${isRTL ? 'text-right' : ''}`}>
+                <StyledText className={`text-base font-['IRANSans-Bold'] text-orange-900 mb-2 ${isRTL ? 'text-start' : ''}`}>
                   {t('homePage.mainBannerTitle')}
                 </StyledText>
                 <StyledText className={`text-sm font-['IRANSans'] text-orange-900 ${isRTL ? 'text-right' : ''}`}>
@@ -152,7 +152,7 @@ export default function HomeScreen() {
           </StyledView>
 
           {/* Shop Banner */}
-          <StyledView 
+          <StyledView
               className="rounded-2xl my-5 overflow-hidden shadow-lg shadow-black/10"
               style={{ backgroundColor: isDark ? colors.card : '#ffffff' }}
           >

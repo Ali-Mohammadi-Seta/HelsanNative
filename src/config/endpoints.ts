@@ -9,23 +9,25 @@ const endpoints = {
   checkAuthorize: '/user/usersStatus',
   getToken: '/auth/token',
   healthGovRegister: '/user/oauth-register-user',
-  
+  verifyOTP1: '/auth/verify-otp',
+
+  // Health Ministry
   // Registered user
   userProfileInfo: '/user/userInfo',
   getPotentialRoles: '/user/get-all-potential-roles',
   upgradeUser: (role: string) => `/user/upgrade-${role}`,
-  changePassword: '/user/changePassword',
-  
+  changePassword1: '/user/changePassword',
+
   // Doctors
   getDoctorsList: '/user/doctors',
-  
+
   // EMR
   getSelfEmrStatus: '/emr/temp/self',
   getQuestionnaireCachedInfo: '/emr/temp/cachedInfo',
   saveDoneQuestionnaire: '/emr/temp/self',
   getUserHealthInfo: '/emrServer/userHealthInfo',
   getUserEmrServices: '/emrServer/prescriptions/userPrimaryServices',
-  
+
   // Location
   getPlaceListOnMove: '/location',
 } as const;

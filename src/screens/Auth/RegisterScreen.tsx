@@ -5,10 +5,10 @@ import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import { router } from 'expo-router';
 import Toast from 'react-native-toast-message';
-import DatePicker from 'react-native-date-picker';
 import moment from 'moment-jalaali';
-import { FloatingInput, Button } from '@/components';
-import { useRegister } from '@/lib/hooks/auth/useRegister'; // ✅ USE HOOK
+import { FloatingInput, Button, Modal } from '@/components';
+import DatePickerJalali from '@/components/DatePicker/DatePickerJalali';
+import { useRegister } from '@/lib/hooks/auth/useRegister';
 import { setUserRegisterFormValues } from '@/redux/slices/userSlice';
 import { useTheme } from '@/styles/theme';
 
@@ -16,50 +16,45 @@ export default function RegisterScreen() {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const { colors, isDark } = useTheme();
-  
+
   const [phone, setPhone] = useState('');
   const [nationalId, setNationalId] = useState('');
-  const [birthDate, setBirthDate] = useState<Date | null>(null);
+  const [birthDate, setBirthDate] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [errors, setErrors] = useState<{ 
-    phone?: string; 
-    nationalId?: string; 
+  const [errors, setErrors] = useState<{
+    phone?: string;
+    nationalId?: string;
     birthDate?: string;
   }>({});
 
-  const registerMutation = useRegister(); // ✅ USE HOOK
+  const registerMutation = useRegister();
 
   const validateForm = (): boolean => {
     const newErrors: typeof errors = {};
-    
+
     if (!phone || phone.length !== 11) {
       newErrors.phone = t('rules.phonNumDigit');
     }
-    
+
     if (!nationalId || nationalId.length !== 10) {
       newErrors.nationalId = t('rules.natCodeDigit');
     }
-    
+
     if (!birthDate) {
       newErrors.birthDate = t('rules.requiredField');
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  const convertToShamsi = (date: Date): string => {
-    return moment(date).format('jYYYY/jMM/jDD');
   };
 
   const handleRegister = () => {
     if (!validateForm()) return;
 
-    const shamsiDate = convertToShamsi(birthDate!);
     const payload = {
       phone,
       nationalId,
-      birthDate: shamsiDate,
+      birthDate, // Already in Shamsi format (YYYY/MM/DD)
     };
 
     registerMutation.mutate(payload, {
@@ -73,7 +68,7 @@ export default function RegisterScreen() {
       },
       onError: (error: any) => {
         const errorCode = error.response?.data?.error?.errorCode;
-        
+
         if (
           error.response?.status === 429 &&
           errorCode === 'PREVIOUS_OTP_STILL_VALID'
@@ -81,7 +76,7 @@ export default function RegisterScreen() {
           dispatch(setUserRegisterFormValues(payload));
           router.push('/(auth)/verification?type=register');
         }
-        
+
         Toast.show({
           type: 'error',
           text1: error.response?.data?.messageFa || t('error'),
@@ -90,9 +85,12 @@ export default function RegisterScreen() {
     });
   };
 
-  const healthMinistryLogin = () => {
-    // TODO: Implement WebBrowser for SSO
-    Toast.show({ type: 'info', text1: t('healthMinistry') });
+  const healthMinistryLogin = async () => {
+    const callbackUrl = 'your-app://health-ministry-callback';
+    const url = `https://ssocore.behdasht.gov.ir/oauth2/authorize?response_type=code&scope=openid profile&client_id=salamhealth.ir&state=state1&redirect_uri=${callbackUrl}`;
+
+    const { WebBrowser } = await import('expo-web-browser');
+    await WebBrowser.openAuthSessionAsync(url, callbackUrl);
   };
 
   return (
@@ -100,7 +98,7 @@ export default function RegisterScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       className="flex-1"
     >
-      <ScrollView 
+      <ScrollView
         className={isDark ? 'bg-background-dark' : 'bg-white'}
         contentContainerStyle={{ padding: 20 }}
         showsVerticalScrollIndicator={false}
@@ -123,8 +121,10 @@ export default function RegisterScreen() {
           type="number"
           error={errors.nationalId}
           disabled={registerMutation.isPending}
+          maxLength={10}
         />
 
+        {/* Jalali Date Picker Button */}
         <View className="mb-4">
           <Button
             type="secondary"
@@ -133,7 +133,7 @@ export default function RegisterScreen() {
             fullWidth
             className={errors.birthDate ? 'border-2 border-error' : ''}
           >
-            {birthDate ? convertToShamsi(birthDate) : t('birth')}
+            {birthDate || t('birth')}
           </Button>
           {errors.birthDate && (
             <Text className="text-error text-xs mt-1 mx-1">
@@ -141,19 +141,6 @@ export default function RegisterScreen() {
             </Text>
           )}
         </View>
-
-        <DatePicker
-          modal
-          open={showDatePicker}
-          date={birthDate || new Date()}
-          mode="date"
-          onConfirm={(date: Date) => {
-            setShowDatePicker(false);
-            setBirthDate(date);
-          }}
-          onCancel={() => setShowDatePicker(false)}
-          maximumDate={new Date()}
-        />
 
         <Button
           type="primary"
@@ -186,6 +173,23 @@ export default function RegisterScreen() {
           {t('healthMinistry')}
         </Button>
       </ScrollView>
+
+      {/* Date Picker Modal */}
+      <Modal
+        open={showDatePicker}
+        onClose={() => setShowDatePicker(false)}
+        title={t('birth')}
+        closable
+        size="lg"
+      >
+        <DatePickerJalali
+          selectedDate={birthDate}
+          onDateChange={(date) => {
+            setBirthDate(date);
+            setShowDatePicker(false);
+          }}
+        />
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
