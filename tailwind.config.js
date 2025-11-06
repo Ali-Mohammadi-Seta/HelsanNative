@@ -5,7 +5,7 @@ module.exports = {
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
   presets: [require("nativewind/preset")],
-  darkMode: 'class', // Enable class-based dark mode
+  darkMode: "class", // class-based dark mode (works with <View className="dark">)
   theme: {
     extend: {
       colors: {
@@ -25,7 +25,7 @@ module.exports = {
           DEFAULT: "#000000",
           secondary: "#666666",
           dark: "#ffffff",
-          'dark-secondary': "#aaaaaa",
+          "dark-secondary": "#aaaaaa",
         },
         border: {
           DEFAULT: "#e0e0e0",
@@ -37,10 +37,10 @@ module.exports = {
         info: "#3b82f6",
       },
       fontFamily: {
-        sans: ['IRANSans'],
-        bold: ['IRANSans-Bold'],
-        medium: ['IRANSans-Medium'],
-        light: ['IRANSans-Light'],
+        sans: ["IRANSans"],
+        bold: ["IRANSans-Bold"],
+        medium: ["IRANSans-Medium"],
+        light: ["IRANSans-Light"],
       },
     },
   },

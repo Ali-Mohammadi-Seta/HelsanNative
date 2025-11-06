@@ -1,14 +1,13 @@
-// lib/api/apiClient.ts
+// src/lib/api/apiClient.ts
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { router } from 'expo-router';
-import Constants from 'expo-constants';
 import { getAccessToken, getRefreshToken, removeTokens, saveAccessToken } from '../auth/tokenStorage';
+import config from '@/config';
 
 // --- Configuration ---
-const BASE_URL = 'http://192.168.1.69:8080/api';
-const REFRESH_TOKEN_ENDPOINT = '/auth/refresh';
+const BASE_URL = config.apiUrl;
+const REFRESH_TOKEN_ENDPOINT = '/auth/token';
 
-console.log('🔧 [API CLIENT] Base URL:', BASE_URL);
 // --- Axios Instance ---
 const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -18,42 +17,40 @@ const apiClient = axios.create({
   },
 });
 
-// --- Logging Helpers ---
+// --- Logging (dev only) ---
 const isDev = process.env.NODE_ENV === 'development';
 const log = {
   req: (req: AxiosRequestConfig) => {
-    if (isDev) {
-      const fullUrl = `${req.baseURL || apiClient.defaults.baseURL}${req.url}`;
-      console.log('➡️ [API REQUEST]', req.method?.toUpperCase(), fullUrl, 'Headers:', JSON.stringify(req.headers));
-    }
+    if (!isDev) return;
+    const fullUrl = `${req.baseURL || apiClient.defaults.baseURL}${req.url}`;
+    console.log('➡️ [API REQUEST]', req.method?.toUpperCase(), fullUrl, 'Headers:', JSON.stringify(req.headers));
   },
   res: (res: AxiosResponse) => {
-    if (isDev) {
-      const fullUrl = `${res.config.baseURL || ''}${res.config.url || ''}`;
-      console.log('✅ [API RESPONSE]', fullUrl, res.status);
-    }
+    if (!isDev) return;
+    const fullUrl = `${res.config.baseURL || ''}${res.config.url || ''}`;
+    console.log('✅ [API RESPONSE]', fullUrl, res.status);
   },
   err: (err: AxiosError) => {
-    if (isDev) {
-      if (err.response) {
-        const fullUrl = `${err.config?.baseURL || ''}${err.config?.url || ''}`;
-        console.log('❌ [API ERROR]', fullUrl, err.response.status, JSON.stringify(err.response.data));
-      } else {
-        console.log('❌ [API ERROR] Network or setup error:', err.message);
-      }
+    if (!isDev) return;
+    if (err.response) {
+      const fullUrl = `${err.config?.baseURL || ''}${err.config?.url || ''}`;
+      console.log('❌ [API ERROR]', fullUrl, err.response.status, JSON.stringify(err.response.data));
+    } else {
+      console.log('❌ [API ERROR] Network/setup:', err.message);
     }
   },
 };
 
 // --- Request Interceptor ---
 apiClient.interceptors.request.use(
-  async (config) => {
+  async (cfg) => {
     const token = await getAccessToken();
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      cfg.headers = cfg.headers ?? {};
+      cfg.headers.Authorization = `Bearer ${token}`;
     }
-    log.req(config);
-    return config;
+    log.req(cfg);
+    return cfg;
   },
   (error) => {
     log.err(error);
@@ -61,12 +58,12 @@ apiClient.interceptors.request.use(
   }
 );
 
-// --- Response Interceptor ---
+// --- Response Interceptor (401/403 → refresh) ---
 let isRefreshing = false;
-let failedQueue: any[] = [];
+let failedQueue: Array<{ resolve: (t: string) => void; reject: (e: any) => void }> = [];
 
 const processQueue = (error: Error | null, token: string | null = null) => {
-  failedQueue.forEach((prom) => (error ? prom.reject(error) : prom.resolve(token)));
+  failedQueue.forEach((p) => (error ? p.reject(error) : p.resolve(token!)));
   failedQueue = [];
 };
 
@@ -79,65 +76,62 @@ apiClient.interceptors.response.use(
     log.err(error);
     const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        }).then((token) => {
-          if (originalRequest.headers) {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-          }
-          return apiClient(originalRequest);
-        });
-      }
+    const status = error.response?.status;
+    const shouldTryRefresh =
+      (status === 401 || status === 403) &&
+      originalRequest &&
+      !originalRequest._retry &&
+      // don’t refresh if we are already calling refresh
+      (originalRequest.url ?? '').indexOf(REFRESH_TOKEN_ENDPOINT) === -1;
 
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      try {
-        const refreshToken = await getRefreshToken();
-
-        console.log("--- Refresh: USING REFRESH TOKEN ---");
-        console.log(refreshToken);
-
-        if (!refreshToken) {
-          throw new Error('No refresh token available. User needs to log in again.');
-        }
-
-        // ✅ FIXED: Send refresh token in HEADER, not body
-        const response = await axios.post(
-          `${BASE_URL}${REFRESH_TOKEN_ENDPOINT}`,
-          {}, // Empty body
-          {
-            headers: {
-              'X-App-Client': 'phone',
-              'Authorization': `Bearer ${refreshToken}`, // Backend reads refresh token from here
-            },
-          }
-        );
-
-        const { accessToken } = response.data.data || response.data;
-
-        await saveAccessToken(accessToken);
-        apiClient.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-
-        processQueue(null, accessToken);
-
-        if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-        }
-        return apiClient(originalRequest);
-      } catch (refreshError) {
-        processQueue(refreshError as Error, null);
-        await removeTokens();
-        router.replace('/(login)/login');
-        return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
-      }
+    if (!shouldTryRefresh) {
+      return Promise.reject(error);
     }
 
-    return Promise.reject(error);
+    if (isRefreshing) {
+      return new Promise((resolve, reject) => {
+        failedQueue.push({ resolve, reject });
+      }).then((token) => {
+        originalRequest.headers = originalRequest.headers ?? {};
+        originalRequest.headers.Authorization = `Bearer ${token}`;
+        return apiClient(originalRequest);
+      });
+    }
+
+    originalRequest._retry = true;
+    isRefreshing = true;
+
+    try {
+      const refreshToken = await getRefreshToken();
+      if (!refreshToken) throw new Error('No refresh token');
+
+      // 🔁 Match web: POST /auth/token with body { refreshToken }
+      const { data } = await axios.post<{ data?: { accessToken: string } }>(
+        `${BASE_URL}${REFRESH_TOKEN_ENDPOINT}`,
+        { refreshToken },
+        { headers: { 'X-App-Client': 'phone', 'Content-Type': 'application/json' } }
+      );
+
+      const accessToken = data?.data?.accessToken ?? (data as any)?.accessToken;
+      if (!accessToken) throw new Error('No access token in refresh response');
+
+      await saveAccessToken(accessToken);
+      apiClient.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+
+      processQueue(null, accessToken);
+
+      originalRequest.headers = originalRequest.headers ?? {};
+      originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+      return apiClient(originalRequest);
+    } catch (refreshError) {
+      processQueue(refreshError as Error, null);
+      await removeTokens();
+      // go to auth entry; keep this consistent with your stacks
+      router.replace('/(auth)');
+      return Promise.reject(refreshError);
+    } finally {
+      isRefreshing = false;
+    }
   }
 );
 

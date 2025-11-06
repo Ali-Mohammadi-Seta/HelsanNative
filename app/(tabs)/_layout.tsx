@@ -1,14 +1,18 @@
-// app/(tabs)/_layout.tsx
 import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/styles/theme';
-import { useSafeAreaInsets } from 'react-native-safe-area-context'; // ✅ ADD THIS
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/redux/store';
+import { Platform } from 'react-native';
 
 export default function TabsLayout() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors, isDark } = useTheme();
-  const insets = useSafeAreaInsets(); // ✅ ADD THIS
+  const insets = useSafeAreaInsets();
+  const isLoggedIn = useSelector((s: RootState) => s.auth.isLoggedIn);
+  const writingDirection = i18n.language === 'fa' ? 'rtl' : 'ltr';
 
   return (
     <Tabs
@@ -19,72 +23,62 @@ export default function TabsLayout() {
           backgroundColor: isDark ? colors.card : colors.background,
           borderTopColor: isDark ? colors.border : '#e0e0e0',
           borderTopWidth: 1,
-          height: 60 + insets.bottom, // ✅ ADD THIS - Safe area bottom padding
-          paddingBottom: insets.bottom + 8, // ✅ ADD THIS
+          height: 60 + insets.bottom,
+          paddingBottom: insets.bottom + 8,
           paddingTop: 8,
+          flexDirection: writingDirection === 'rtl' ? 'row-reverse' : 'row',
         },
         tabBarLabelStyle: {
           fontFamily: 'IRANSans',
           fontSize: 12,
+          writingDirection,
+          ...(Platform.OS === 'ios' ? { textAlign: 'center' as const } : {}),
         },
         headerShown: false,
       }}
     >
-      {/* Home Tab */}
       <Tabs.Screen
         name="home"
         options={{
           title: t('home'),
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons 
-              name={focused ? 'home' : 'home-outline'} 
-              size={size} 
-              color={color} 
-            />
+            <Ionicons name={focused ? 'home' : 'home-outline'} size={size} color={color} />
           ),
         }}
       />
-
-      {/* Explore Tab */}
       <Tabs.Screen
         name="explore"
         options={{
           title: t('search'),
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons 
-              name={focused ? 'search' : 'search-outline'} 
-              size={size} 
-              color={color} 
-            />
+            <Ionicons name={focused ? 'search' : 'search-outline'} size={size} color={color} />
           ),
         }}
       />
-
-      {/* Map Tab */}
       <Tabs.Screen
         name="map"
         options={{
           title: t('locator'),
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons 
-              name={focused ? 'map' : 'map-outline'} 
-              size={size} 
-              color={color} 
-            />
+            <Ionicons name={focused ? 'map' : 'map-outline'} size={size} color={color} />
           ),
         }}
       />
 
-      {/* Profile Tab */}
+      {/* Last tab: same route name, different icon intent based on auth */}
       <Tabs.Screen
         name="profile"
         options={{
           title: t('account'),
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons 
-              name={focused ? 'person' : 'person-outline'} 
-              size={size} 
-              color={color} 
+            <Ionicons
+              name={
+                isLoggedIn
+                  ? (focused ? 'person' : 'person-outline')
+                  : (focused ? 'log-in' : 'log-in-outline')
+              }
+              size={size}
+              color={color}
             />
           ),
         }}

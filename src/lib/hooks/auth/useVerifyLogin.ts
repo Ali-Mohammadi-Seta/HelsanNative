@@ -1,27 +1,28 @@
-// src/lib/hooks/auth/useVerifyLogin.ts
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { verifyLoginApi } from '@/lib/api/apiService';
-import { saveTokens } from '@/lib/auth/tokenStorage';
+import { useMutation } from '@tanstack/react-query';
+import apiClient from '@/lib/api/apiClient';
+import endpoints from '@/config/endpoints';
+import { useDispatch } from 'react-redux';
+import { setIsLoggedIn, setUserRole } from '@/redux/slices/authSlice';
+import { router } from 'expo-router';
+import { checkAuthorizeApi } from '@/lib/api/apiService';
 
 export const useVerifyLogin = () => {
-  const queryClient = useQueryClient();
+  const dispatch = useDispatch();
 
   return useMutation({
-    mutationFn: verifyLoginApi,
-    onSuccess: async (data) => {
-      console.log('✅ [useVerifyLogin] Success');
-      
-      // Save tokens if available
-      if (data?.data?.accessToken && data?.data?.refreshToken) {
-        await saveTokens(data.data.accessToken, data.data.refreshToken);
-      }
-      
-      // Invalidate queries
-      queryClient.invalidateQueries({ queryKey: ['userProfile'] });
-      queryClient.invalidateQueries({ queryKey: ['checkAuthorize'] });
+    mutationFn: async (body: { otp: string }) => {
+      const res = await apiClient.post(endpoints.verifyLogin, body);
+      return res?.data;
     },
-    onError: (error: any) => {
-      console.error('[useVerifyLogin] Error:', error.response?.data || error.message);
+    onSuccess: async () => {
+      try {
+        const auth = await checkAuthorizeApi(); // { isLogin, roles: { ourRoles: [...] } }
+        dispatch(setIsLoggedIn(!!auth?.isLogin));
+        dispatch(setUserRole(auth?.roles?.ourRoles || []));
+      } catch {
+        dispatch(setIsLoggedIn(true)); // fallback
+      }
+      router.replace('/(tabs)/home');
     },
   });
 };

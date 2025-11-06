@@ -3,13 +3,6 @@
     "name": "Helsan",
     "slug": "helsan-native",
     "version": "1.0.0",
-      "extra": {
-      "apiUrl": "http://192.168.1.69:8080/api",
-      "behdashtCallbackUrl": "helsan://health-ministry-callback",
-      "router": {
-        "origin": false
-      }
-    },
     "orientation": "portrait",
     "icon": "@/assets/images/icon.png",
     "scheme": "helsan",
@@ -23,7 +16,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": ".src/assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.helsan.app"
@@ -36,12 +29,15 @@
     "plugins": [
       "expo-router",
       "expo-font",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
     },
     "extra": {
+      "apiUrl": "http://192.168.1.69:8080/api",
+      "behdashtCallbackUrl": "helsan://health-ministry-callback",
       "router": {
         "origin": false
       }
