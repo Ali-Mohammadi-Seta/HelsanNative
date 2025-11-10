@@ -5,7 +5,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useLocalSearchParams } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import { Ionicons } from '@expo/vector-icons';
-import { OtpInput, Modal, ChooseCurrentRole } from '@/components';
+
+// ✅ UPDATED IMPORTS - Import OtpInput and Modal from index, Auth component directly
+import { OtpInput, Modal, BackHeader } from '@/components';
+import ChooseCurrentRole from '@/components/Auth/ChooseCurrentRole'; // ✅ Direct import
+
 import { useLogin } from '@/lib/hooks/auth/useLogin';
 import { useRegister } from '@/lib/hooks/auth/useRegister';
 import { useVerifyLogin } from '@/lib/hooks/auth/useVerifyLogin';
@@ -15,7 +19,6 @@ import { setIsLoggedIn, setUserRole } from '@/redux/slices/authSlice';
 import { RootState } from '@/redux/store';
 import { useTheme } from '@/styles/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import BackHeader from '@/components/BackHeader';
 
 export default function VerificationScreen() {
   const { t } = useTranslation();

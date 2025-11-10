@@ -16,7 +16,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": ".src/assets/images/adaptive-icon.png",
+        "foregroundImage": "./src/assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.helsan.app"
@@ -40,6 +40,9 @@
       "behdashtCallbackUrl": "helsan://health-ministry-callback",
       "router": {
         "origin": false
+      },
+      "eas": {
+        "projectId": "81d67089-9133-4446-8dca-9877b70f4488"
       }
     }
   }

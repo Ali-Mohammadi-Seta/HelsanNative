@@ -238,6 +238,8 @@
   "introOptions": {},
   "introducPage": {},
   "sectionClinic": "Workspace",
+  "pleaseSelectRole": "Please select a role",
+  "currentRoleSetTo": "Current role set to",
   "viweInfo": "View information",
   "sahebBrand": "Brand owner:",
   "packaging": "Packaging",

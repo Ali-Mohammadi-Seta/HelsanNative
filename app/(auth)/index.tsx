@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useTheme } from '@/styles/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import BackHeader from '@/components/BackHeader';
+import { BackHeader } from '@/components';
 import LoginScreen from '@/screens/Auth/LoginScreen';
 import RegisterScreen from '@/screens/Auth/RegisterScreen';
 import ForgotPassword from '@/components/Auth/ForgotPassword';
@@ -61,8 +61,13 @@ export default function AuthScreen() {
   const showTabs = authFlow === 'login' || authFlow === 'register';
 
   return (
-    <View className="flex-1" style={{ paddingTop: insets.top, backgroundColor: isDark ? colors.background : '#fff' }}>
-      {/* Custom header (RTL/LTR aware) */}
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: isDark ? colors.background : '#ffffff'
+      }}
+    >
+      {/* Header */}
       <BackHeader
         title={
           authFlow === 'forgotPassword' ? t('forgotPassword')
@@ -75,24 +80,55 @@ export default function AuthScreen() {
 
       {/* Tabs (Login / Register) */}
       {showTabs && (
-        <View>
-          <View className="flex-row">
+        <View style={{
+          borderBottomWidth: 1,
+          borderBottomColor: isDark ? colors.border : '#e5e5e5'
+        }}>
+          <View style={{ flexDirection: 'row' }}>
             <TouchableOpacity
-              onPress={() => { setActiveTab('login'); setAuthFlow('login'); }}
-              className="flex-1 items-center pb-3 border-b-2"
-              style={{ borderBottomColor: activeTab === 'login' ? colors.primary : 'transparent' }}
+              onPress={() => {
+                setActiveTab('login');
+                setAuthFlow('login');
+              }}
+              style={{
+                flex: 1,
+                alignItems: 'center',
+                paddingVertical: 16,
+                borderBottomWidth: 2,
+                borderBottomColor: activeTab === 'login' ? colors.primary : 'transparent'
+              }}
             >
-              <Text className={`text-base font-bold ${activeTab === 'login' ? 'text-primary' : (isDark ? 'text-gray-400' : 'text-gray-600')}`}>
+              <Text style={{
+                fontSize: 16,
+                fontFamily: 'IRANSans-Bold',
+                color: activeTab === 'login'
+                  ? colors.primary
+                  : (isDark ? '#999999' : '#666666')
+              }}>
                 {t('user.login')}
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={() => { setActiveTab('register'); setAuthFlow('register'); }}
-              className="flex-1 items-center pb-3 border-b-2"
-              style={{ borderBottomColor: activeTab === 'register' ? colors.primary : 'transparent' }}
+              onPress={() => {
+                setActiveTab('register');
+                setAuthFlow('register');
+              }}
+              style={{
+                flex: 1,
+                alignItems: 'center',
+                paddingVertical: 16,
+                borderBottomWidth: 2,
+                borderBottomColor: activeTab === 'register' ? colors.primary : 'transparent'
+              }}
             >
-              <Text className={`text-base font-bold ${activeTab === 'register' ? 'text-primary' : (isDark ? 'text-gray-400' : 'text-gray-600')}`}>
+              <Text style={{
+                fontSize: 16,
+                fontFamily: 'IRANSans-Bold',
+                color: activeTab === 'register'
+                  ? colors.primary
+                  : (isDark ? '#999999' : '#666666')
+              }}>
                 {t('Register')}
               </Text>
             </TouchableOpacity>
@@ -126,8 +162,18 @@ export default function AuthScreen() {
         {authFlow === 'login' && (
           <View style={{ flex: 1 }}>
             <LoginScreen />
-            <TouchableOpacity onPress={toForgot} className="mt-4">
-              <Text className="text-primary text-center">{t('forgotPassword')}</Text>
+            <TouchableOpacity
+              onPress={toForgot}
+              style={{ paddingHorizontal: 20, paddingVertical: 12 }}
+            >
+              <Text style={{
+                color: colors.primary,
+                textAlign: 'center',
+                fontFamily: 'IRANSans',
+                fontSize: 14
+              }}>
+                {t('forgotPassword')}
+              </Text>
             </TouchableOpacity>
           </View>
         )}

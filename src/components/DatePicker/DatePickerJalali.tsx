@@ -1,48 +1,169 @@
-// src/components/DatePicker/DatePickerJalali.tsx
 import React, { useState } from 'react';
-import { View } from 'react-native';
-import DatePicker from '@hassanmojab/react-modern-calendar-datepicker';
-import { useTheme } from '@/styles/theme';
+import { View, Text, TouchableOpacity, Modal as RNModal, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import moment from 'moment-jalaali';
+import { useTheme } from '@/styles/theme';
+import { Ionicons } from '@expo/vector-icons';
+import Button from '../Button';
 
 interface DatePickerJalaliProps {
   selectedDate?: string;
   onDateChange: (date: string) => void;
-  maxDate?: string;
-  minDate?: string;
+  maxDate?: Date;
+  minDate?: Date;
 }
 
-export default function DatePickerJalali({
+const DatePickerJalali: React.FC<DatePickerJalaliProps> = ({
   selectedDate,
   onDateChange,
-  maxDate,
+  maxDate = new Date(),
   minDate,
-}: DatePickerJalaliProps) {
+}) => {
+  const { t, i18n } = useTranslation();
   const { colors, isDark } = useTheme();
+  const isRTL = i18n.language === 'fa';
 
-  // Get today in Jalali format (YYYY/MM/DD)
-  const today = moment().format('jYYYY/jMM/jDD');
+  const [year, setYear] = useState(selectedDate ? parseInt(selectedDate.split('/')[0]) : 1370);
+  const [month, setMonth] = useState(selectedDate ? parseInt(selectedDate.split('/')[1]) : 1);
+  const [day, setDay] = useState(selectedDate ? parseInt(selectedDate.split('/')[2]) : 1);
+
+  const persianMonths = [
+    'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
+    'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'
+  ];
+
+  const getDaysInMonth = (m: number, y: number) => {
+    if (m <= 6) return 31;
+    if (m <= 11) return 30;
+    // Check leap year for Esfand
+    const isLeap = ((y % 33) * 8 + 21) % 128 < 8;
+    return isLeap ? 30 : 29;
+  };
+
+  const days = getDaysInMonth(month, year);
+  const years = Array.from({ length: 100 }, (_, i) => 1300 + i);
+
+  const handleConfirm = () => {
+    const dateStr = `${year}/${String(month).padStart(2, '0')}/${String(day).padStart(2, '0')}`;
+    onDateChange(dateStr);
+  };
 
   return (
-    <View>
-      <DatePicker
-        mode="calendar"
-        selected={selectedDate}
-        onDateChange={onDateChange}
-        options={{
-          backgroundColor: isDark ? colors.card : colors.background,
-          textHeaderColor: colors.primary,
-          textDefaultColor: isDark ? colors.text : '#000000',
-          selectedTextColor: '#fff',
-          mainColor: colors.primary,
-          textSecondaryColor: isDark ? '#888888' : '#666666',
-          borderColor: isDark ? colors.border : '#e0e0e0',
-        }}
-        current={today}
-        maximumDate={maxDate || today}
-        minimumDate={minDate}
-        style={{ borderRadius: 12 }}
-      />
+    <View style={[styles.container, { backgroundColor: isDark ? colors.card : '#ffffff' }]}>
+      {/* Year Picker */}
+      <View style={styles.section}>
+        <Text style={[styles.label, { color: isDark ? colors.text : '#000000' }]}>
+          {t('year') || 'سال'}
+        </Text>
+        <View style={styles.picker}>
+          {years.slice(year - 1305, year - 1295).map((y) => (
+            <TouchableOpacity
+              key={y}
+              onPress={() => setYear(y)}
+              style={[
+                styles.option,
+                year === y && { backgroundColor: colors.primary },
+              ]}
+            >
+              <Text style={[
+                styles.optionText,
+                { color: year === y ? '#ffffff' : (isDark ? colors.text : '#000000') }
+              ]}>
+                {y}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+
+      {/* Month Picker */}
+      <View style={styles.section}>
+        <Text style={[styles.label, { color: isDark ? colors.text : '#000000' }]}>
+          {t('month') || 'ماه'}
+        </Text>
+        <View style={styles.picker}>
+          {persianMonths.map((m, idx) => (
+            <TouchableOpacity
+              key={idx}
+              onPress={() => setMonth(idx + 1)}
+              style={[
+                styles.option,
+                month === idx + 1 && { backgroundColor: colors.primary },
+              ]}
+            >
+              <Text style={[
+                styles.optionText,
+                { color: month === idx + 1 ? '#ffffff' : (isDark ? colors.text : '#000000') }
+              ]}>
+                {m}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+
+      {/* Day Picker */}
+      <View style={styles.section}>
+        <Text style={[styles.label, { color: isDark ? colors.text : '#000000' }]}>
+          {t('day') || 'روز'}
+        </Text>
+        <View style={styles.picker}>
+          {Array.from({ length: days }, (_, i) => i + 1).map((d) => (
+            <TouchableOpacity
+              key={d}
+              onPress={() => setDay(d)}
+              style={[
+                styles.option,
+                day === d && { backgroundColor: colors.primary },
+              ]}
+            >
+              <Text style={[
+                styles.optionText,
+                { color: day === d ? '#ffffff' : (isDark ? colors.text : '#000000') }
+              ]}>
+                {d}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+
+      {/* Confirm Button */}
+      <Button type="primary" size="large" onPress={handleConfirm} fullWidth className="mt-4">
+        {t('ok') || 'تأیید'}
+      </Button>
     </View>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 16,
+    borderRadius: 12,
+  },
+  section: {
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 14,
+    fontFamily: 'IRANSans-Bold',
+    marginBottom: 8,
+  },
+  picker: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  option: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: '#f5f5f5',
+  },
+  optionText: {
+    fontSize: 14,
+    fontFamily: 'IRANSans',
+  },
+});
+
+export default DatePickerJalali;

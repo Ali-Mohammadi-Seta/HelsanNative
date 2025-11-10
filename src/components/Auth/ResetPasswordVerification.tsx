@@ -1,13 +1,18 @@
-// src/components/Auth/ResetPasswordVerification.tsx
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import Toast from 'react-native-toast-message';
 import { Ionicons } from '@expo/vector-icons';
-import { OtpInput, Button } from '@/components';
+
+// ✅ CHANGED - Direct imports
+import OtpInput from '@/components/Input/OtpInput';
+import Button from '@/components/Button';
+
 import apiClient from '@/lib/api/apiClient';
 import endpoints from '@/config/endpoints';
 import { useTheme } from '@/styles/theme';
+
+// ... rest of the file stays exactly the same
 
 interface ResetPasswordVerificationProps {
   phone: string;

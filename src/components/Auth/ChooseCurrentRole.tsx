@@ -1,4 +1,3 @@
-// app/(auth)/components/ChooseCurrentRole.tsx
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -6,7 +5,10 @@ import { useSelector } from 'react-redux';
 import { router } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Button } from '@/components';
+
+// ✅ CHANGED - Direct import instead of barrel
+import Button from '@/components/Button';
+
 import { RootState } from '@/redux/store';
 import { useTheme } from '@/styles/theme';
 
@@ -42,12 +44,12 @@ export default function ChooseCurrentRole({ setShowChooseRoleModal }: ChooseCurr
     }
 
     await AsyncStorage.setItem('currentRole', selectedRole);
-    
+
     Toast.show({
       type: 'success',
       text1: `${t('currentRoleSetTo')}: ${rolesListFa[selectedRole] || selectedRole}`,
     });
-    
+
     setShowChooseRoleModal(false);
     router.replace('/(tabs)/home');
   };

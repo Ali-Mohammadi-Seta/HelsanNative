@@ -1,42 +1,50 @@
-// src/lib/api/apiClient.ts
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { router } from 'expo-router';
 import { getAccessToken, getRefreshToken, removeTokens, saveAccessToken } from '../auth/tokenStorage';
 import config from '@/config';
 
 // --- Configuration ---
-const BASE_URL = config.apiUrl;
+// ✅ Use the nginx proxy on local network
+const BASE_URL = config.apiUrl; // http://192.168.1.69:8080/api
 const REFRESH_TOKEN_ENDPOINT = '/auth/token';
 
 // --- Axios Instance ---
 const apiClient = axios.create({
   baseURL: BASE_URL,
+  timeout: 30000, // ✅ Add timeout
   headers: {
     'Content-Type': 'application/json',
     'X-App-Client': 'phone',
   },
 });
 
-// --- Logging (dev only) ---
-const isDev = process.env.NODE_ENV === 'development';
+// --- Logging ---
+const isDev = __DEV__;
 const log = {
   req: (req: AxiosRequestConfig) => {
     if (!isDev) return;
-    const fullUrl = `${req.baseURL || apiClient.defaults.baseURL}${req.url}`;
-    console.log('➡️ [API REQUEST]', req.method?.toUpperCase(), fullUrl, 'Headers:', JSON.stringify(req.headers));
+    const fullUrl = `${req.baseURL}${req.url}`;
+    console.log('➡️ [API REQUEST]', req.method?.toUpperCase(), fullUrl);
+    console.log('   Headers:', JSON.stringify(req.headers, null, 2));
+    if (req.data) console.log('   Body:', JSON.stringify(req.data, null, 2));
   },
   res: (res: AxiosResponse) => {
     if (!isDev) return;
-    const fullUrl = `${res.config.baseURL || ''}${res.config.url || ''}`;
-    console.log('✅ [API RESPONSE]', fullUrl, res.status);
+    const fullUrl = `${res.config.baseURL}${res.config.url}`;
+    console.log('✅ [API RESPONSE]', res.status, fullUrl);
+    console.log('   Data:', JSON.stringify(res.data, null, 2));
   },
   err: (err: AxiosError) => {
     if (!isDev) return;
     if (err.response) {
-      const fullUrl = `${err.config?.baseURL || ''}${err.config?.url || ''}`;
-      console.log('❌ [API ERROR]', fullUrl, err.response.status, JSON.stringify(err.response.data));
+      const fullUrl = `${err.config?.baseURL}${err.config?.url}`;
+      console.log('❌ [API ERROR]', err.response.status, fullUrl);
+      console.log('   Error:', JSON.stringify(err.response.data, null, 2));
+    } else if (err.request) {
+      console.log('❌ [API ERROR] No response received');
+      console.log('   Request:', err.request);
     } else {
-      console.log('❌ [API ERROR] Network/setup:', err.message);
+      console.log('❌ [API ERROR]', err.message);
     }
   },
 };
@@ -58,7 +66,7 @@ apiClient.interceptors.request.use(
   }
 );
 
-// --- Response Interceptor (401/403 → refresh) ---
+// --- Response Interceptor ---
 let isRefreshing = false;
 let failedQueue: Array<{ resolve: (t: string) => void; reject: (e: any) => void }> = [];
 
@@ -74,6 +82,7 @@ apiClient.interceptors.response.use(
   },
   async (error: AxiosError) => {
     log.err(error);
+
     const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
 
     const status = error.response?.status;
@@ -81,8 +90,7 @@ apiClient.interceptors.response.use(
       (status === 401 || status === 403) &&
       originalRequest &&
       !originalRequest._retry &&
-      // don’t refresh if we are already calling refresh
-      (originalRequest.url ?? '').indexOf(REFRESH_TOKEN_ENDPOINT) === -1;
+      !originalRequest.url?.includes(REFRESH_TOKEN_ENDPOINT);
 
     if (!shouldTryRefresh) {
       return Promise.reject(error);
@@ -105,11 +113,15 @@ apiClient.interceptors.response.use(
       const refreshToken = await getRefreshToken();
       if (!refreshToken) throw new Error('No refresh token');
 
-      // 🔁 Match web: POST /auth/token with body { refreshToken }
       const { data } = await axios.post<{ data?: { accessToken: string } }>(
         `${BASE_URL}${REFRESH_TOKEN_ENDPOINT}`,
         { refreshToken },
-        { headers: { 'X-App-Client': 'phone', 'Content-Type': 'application/json' } }
+        {
+          headers: {
+            'X-App-Client': 'phone',
+            'Content-Type': 'application/json'
+          }
+        }
       );
 
       const accessToken = data?.data?.accessToken ?? (data as any)?.accessToken;
@@ -126,7 +138,6 @@ apiClient.interceptors.response.use(
     } catch (refreshError) {
       processQueue(refreshError as Error, null);
       await removeTokens();
-      // go to auth entry; keep this consistent with your stacks
       router.replace('/(auth)');
       return Promise.reject(refreshError);
     } finally {

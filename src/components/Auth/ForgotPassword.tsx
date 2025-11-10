@@ -1,9 +1,12 @@
-// src/components/Auth/ForgotPassword.tsx
 import React, { useState } from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import Toast from 'react-native-toast-message';
-import { FloatingInput, Button } from '@/components';
+
+// ✅ CHANGED - Direct imports
+import FloatingInput from '@/components/Input/FloatingInput';
+import Button from '@/components/Button';
+
 import apiClient from '@/lib/api/apiClient';
 import endpoints from '@/config/endpoints';
 import { useTheme } from '@/styles/theme';
