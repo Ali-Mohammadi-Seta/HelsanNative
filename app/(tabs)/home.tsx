@@ -21,7 +21,7 @@ export default function HomeScreen() {
   const { t, i18n } = useTranslation();
   const { colors, isDark } = useTheme();
 
-  const isRTL = i18n.language === 'fa';
+  const isRTL = i18n.language !== 'fa';
 
   const categories: Array<{
     key: string;

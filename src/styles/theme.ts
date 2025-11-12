@@ -2,12 +2,13 @@ import { useAppSelector } from '@/redux/hooks';
 
 export const lightColors = {
   primary: '#16a34a',
+  secondary: '#0ea5a6',
   background: '#FFFFFF',
-  card: '#F5F5F5',
-  text: '#000000',
-  textSecondary: '#666666',
-  border: '#E0E0E0',
-  error: '#DC2626',
+  card: '#F5F7F9',
+  text: '#0b0b0b',
+  textSecondary: '#4b5563',
+  border: '#E5E7EB',
+  error: '#EF4444',
   success: '#16a34a',
   warning: '#F59E0B',
   info: '#3B82F6',
@@ -15,12 +16,13 @@ export const lightColors = {
 
 export const darkColors = {
   primary: '#22c55e',
-  background: '#121212',
-  card: '#1E1E1E',
-  text: '#FFFFFF',
-  textSecondary: '#AAAAAA',
-  border: '#333333',
-  error: '#EF4444',
+  secondary: '#14b8a6',
+  background: '#0b0f14',
+  card: '#12171d',
+  text: '#FAFAFA', // brighter
+  textSecondary: '#CBD5E1',
+  border: '#374151',
+  error: '#F87171',
   success: '#22C55E',
   warning: '#FBBF24',
   info: '#60A5FA',
@@ -29,7 +31,6 @@ export const darkColors = {
 export const useTheme = () => {
   const themeMode = useAppSelector((state) => state.theme.mode);
   const isDark = themeMode === 'dark';
-  
   return {
     colors: isDark ? darkColors : lightColors,
     isDark,

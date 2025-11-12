@@ -1,14 +1,11 @@
-import React, { useEffect } from 'react';
-import { Slot, SplashScreen } from 'expo-router';
+import React from 'react';
+import { Slot } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { View, I18nManager } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
 import Toast from 'react-native-toast-message';
 import AppProviders from '@/providers/AppProviders';
 import '@/styles/global.css';
-
-// Prevent splash screen from auto-hiding
-SplashScreen.preventAutoHideAsync();
+import { StatusBar } from 'expo-status-bar';
+import { useAppSelector } from '@/redux/hooks';
 
 export default function RootLayout() {
   return (
@@ -21,9 +18,12 @@ export default function RootLayout() {
 }
 
 function RootLayoutContent() {
+  const mode = useAppSelector((s) => s.theme.mode);
+  const isDark = mode === 'dark';
+
   return (
     <>
-      <StatusBar style="auto" />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <Slot />
       <Toast />
     </>

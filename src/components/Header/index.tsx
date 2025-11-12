@@ -23,7 +23,7 @@ const Header: React.FC<HeaderProps> = ({ title, showBack, onBackPress }) => {
   const insets = useSafeAreaInsets();
   const { isLoggedIn } = useSelector((state: RootState) => state.auth);
 
-  const isRTL = i18n.language === 'fa';
+  const isLTR = i18n.language === 'en';
 
   const handleThemeToggle = () => {
     dispatch(toggleTheme());
@@ -36,14 +36,14 @@ const Header: React.FC<HeaderProps> = ({ title, showBack, onBackPress }) => {
 
   // Logo Component
   const LogoSection = () => (
-    <View className="flex-row items-center gap-2">
+    <View className={`${isLTR ? "flex-row-reverse" : "flex-row"} items-center gap-2`}>
       <Image
         source={require('@/assets/images/logo.png')}
         className="w-10 h-10"
         resizeMode="contain"
       />
       <View>
-        <Text className={`text-base font-bold text-primary ${isRTL  ? "text-right" : "text-left" } `}>
+        <Text className={`text-base font-bold text-primary ${isLTR ? "text-right" : "text-left"}`}>
           {t('logoTitle')}
         </Text>
         <Text className={`text-[9px] font-sans -mt-0.5 ${isDark ? 'text-text-dark-secondary' : 'text-gray-600'}`}>
@@ -89,7 +89,7 @@ const Header: React.FC<HeaderProps> = ({ title, showBack, onBackPress }) => {
   const BackButtonSection = () => (
     <TouchableOpacity onPress={onBackPress} className="w-9 h-9 items-center justify-center">
       <Ionicons
-        name={isRTL ? 'arrow-forward' : 'arrow-back'}
+        name={isLTR ? 'arrow-forward' : 'arrow-back'}
         size={24}
         color={isDark ? colors.text : '#000000'}
       />
@@ -101,16 +101,15 @@ const Header: React.FC<HeaderProps> = ({ title, showBack, onBackPress }) => {
       className={`border-b ${isDark ? 'bg-card-dark border-border-dark' : 'bg-white border-gray-200'}`}
       style={{ paddingTop: insets.top + 8 }}
     >
-      {/* ✅ FIXED RTL: Logo always on the side based on language */}
-      <View className="flex-row items-center justify-between px-4 py-3 min-h-[56px]">
-        {isRTL ? (
+      <View className="flex flex-row items-center justify-between px-4 py-3 min-h-[56px]">
+        {isLTR ? (
           <>
-            {/* RTL: Actions (left) | Title (center) | Logo (right) */}
+            {/* RTL: Actions (left) | Title (center) | Logo/Back (right) */}
             <View className="flex-1 items-start">
               <ActionsSection />
             </View>
             {title && (
-              <View className="flex-[2] items-center">
+              <View className="flex- items-center">
                 <Text className={`text-lg font-bold ${isDark ? 'text-white' : 'text-black'}`}>
                   {title}
                 </Text>
@@ -122,12 +121,12 @@ const Header: React.FC<HeaderProps> = ({ title, showBack, onBackPress }) => {
           </>
         ) : (
           <>
-            {/* LTR: Logo (left) | Title (center) | Actions (right) */}
+            {/* LTR: Logo/Back (left) | Title (center) | Actions (right) */}
             <View className="flex-1 items-start">
               {showBack ? <BackButtonSection /> : <LogoSection />}
             </View>
             {title && (
-              <View className="flex-[2] items-center">
+              <View className="flex- items-center">
                 <Text className={`text-lg font-bold ${isDark ? 'text-white' : 'text-black'}`}>
                   {title}
                 </Text>
