@@ -5,7 +5,8 @@ import Toast from 'react-native-toast-message';
 import AppProviders from '@/providers/AppProviders';
 import '@/styles/global.css';
 import { StatusBar } from 'expo-status-bar';
-import { useAppSelector } from '@/redux/hooks';
+import { View } from 'react-native';
+import { useTheme } from '@/styles/theme';
 
 export default function RootLayout() {
   return (
@@ -18,14 +19,14 @@ export default function RootLayout() {
 }
 
 function RootLayoutContent() {
-  const mode = useAppSelector((s) => s.theme.mode);
-  const isDark = mode === 'dark';
+  const { isDark } = useTheme();
 
+  // Apply dark class to root View for NativeWind
   return (
-    <>
+    <View className={`flex-1 ${isDark ? 'dark' : ''}`}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <Slot />
       <Toast />
-    </>
+    </View>
   );
 }

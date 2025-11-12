@@ -29,26 +29,26 @@ export default function HomeScreen() {
     icon: any;
     url?: string;
     gradientColors: [string, string, ...string[]];
-  }> =  [
-    { key: 'places', title: t('header.places'), icon: require('@/assets/images/clinic.gif'), url: '/medical-centers', gradientColors: ['#ff512f', '#dd2476'], },
-    { key: 'drugstore', title: t('drugstore'), icon: require('@/assets/images/drugs.gif'), url: '/pharmacies', gradientColors: ['#6a5acd', '#c54b8c', '#b284be'], },
-    { key: 'paraclinic', title: t('paraclinic'), icon: require('@/assets/images/paraclinic.gif'), gradientColors: ['#cd5700', '#fd9600', '#bfdd50'], },
-    { key: 'healthcareCompanies', title: t('healthcareCompanies'), icon: require('@/assets/images/healthcareCompanies.gif'), url: '/healthcare-companies', gradientColors: ['#000080', '#00bfff'], },
-    { key: 'doctorsAndCounselingPsychologist', title: t('doctorsAndCounselingPsychologist'), icon: require('@/assets/images/doctorsAndCounselingPsychologist.gif'), gradientColors: ['#228b22', '#32cd32'], },
-    { key: 'taghziye', title: t('taghziye'), icon: require('@/assets/images/taghziye.gif'), gradientColors: ['#4169ff', '#89cff0'], },
-    { key: 'healthRoom', title: t('healthRoom'), icon: require('@/assets/images/tea.gif'), gradientColors: ['#09610a', '#67f588'], },
-    { key: 'insurance', title: t('insurance'), icon: require('@/assets/images/insurance.gif'), gradientColors: ['#e056fd', '#000000'], },
-    { key: 'healthTourism', title: t('healthTourism'), icon: require('@/assets/images/healthTourism.gif'), gradientColors: ['#4169ff', '#89cff0'], },
-    { key: 'exercise', title: t('exercise'), icon: require('@/assets/images/running.gif'), gradientColors: ['#ff6677', '#f48e5f', '#ff5047'], },
-    { key: 'transportation', title: t('transportation'), icon: require('@/assets/images/ambulance.gif'), gradientColors: ['#e34234', '#ff3800'], },
-    { key: 'homeNursingCare', title: t('homeNursingCare'), icon: require('@/assets/images/homeNursingCare.gif'), gradientColors: ['#3bb78f', '#0bab64'], },
-    { key: 'locator', title: t('locator'), icon: require('@/assets/images/mapLocator.gif'), gradientColors: ['#f7971e', '#ffd200'], },
-    { key: 'creditPayment', title: t('creditPayment'), icon: require('@/assets/images/creditPayment.gif'), gradientColors: ['#63d471', '#233329'], },
-    { key: 'shops', title: t('shops'), icon: require('@/assets/images/shop.gif'), gradientColors: ['#cd1c18', '#66023c'], },
-    { key: 'volunteeringCampaign', title: t('volunteeringCampaign'), icon: require('@/assets/images/volunteeringCampaign.gif'), gradientColors: ['#F6C324', '#F17E7E'], },
-    { key: 'education', title: t('education'), icon: require('@/assets/images/education.gif'), gradientColors: ['#8CA6DB', '#B993D6'], },
-    { key: 'awareness', title: t('awareness'), icon: require('@/assets/images/awareness.gif'), gradientColors: ['#f83600', '#fe8c00'], },
-  ];
+  }> = [
+      { key: 'places', title: t('header.places'), icon: require('@/assets/images/clinic.gif'), url: '/medical-centers', gradientColors: ['#ff512f', '#dd2476'], },
+      { key: 'drugstore', title: t('drugstore'), icon: require('@/assets/images/drugs.gif'), url: '/pharmacies', gradientColors: ['#6a5acd', '#c54b8c', '#b284be'], },
+      { key: 'paraclinic', title: t('paraclinic'), icon: require('@/assets/images/paraclinic.gif'), gradientColors: ['#cd5700', '#fd9600', '#bfdd50'], },
+      { key: 'healthcareCompanies', title: t('healthcareCompanies'), icon: require('@/assets/images/healthcareCompanies.gif'), url: '/healthcare-companies', gradientColors: ['#000080', '#00bfff'], },
+      { key: 'doctorsAndCounselingPsychologist', title: t('doctorsAndCounselingPsychologist'), icon: require('@/assets/images/doctorsAndCounselingPsychologist.gif'), gradientColors: ['#228b22', '#32cd32'], },
+      { key: 'taghziye', title: t('taghziye'), icon: require('@/assets/images/taghziye.gif'), gradientColors: ['#4169ff', '#89cff0'], },
+      { key: 'healthRoom', title: t('healthRoom'), icon: require('@/assets/images/tea.gif'), gradientColors: ['#09610a', '#67f588'], },
+      { key: 'insurance', title: t('insurance'), icon: require('@/assets/images/insurance.gif'), gradientColors: ['#e056fd', '#000000'], },
+      { key: 'healthTourism', title: t('healthTourism'), icon: require('@/assets/images/healthTourism.gif'), gradientColors: ['#4169ff', '#89cff0'], },
+      { key: 'exercise', title: t('exercise'), icon: require('@/assets/images/running.gif'), gradientColors: ['#ff6677', '#f48e5f', '#ff5047'], },
+      { key: 'transportation', title: t('transportation'), icon: require('@/assets/images/ambulance.gif'), gradientColors: ['#e34234', '#ff3800'], },
+      { key: 'homeNursingCare', title: t('homeNursingCare'), icon: require('@/assets/images/homeNursingCare.gif'), gradientColors: ['#3bb78f', '#0bab64'], },
+      { key: 'locator', title: t('locator'), icon: require('@/assets/images/mapLocator.gif'), gradientColors: ['#f7971e', '#ffd200'], },
+      { key: 'creditPayment', title: t('creditPayment'), icon: require('@/assets/images/creditPayment.gif'), gradientColors: ['#63d471', '#233329'], },
+      { key: 'shops', title: t('shops'), icon: require('@/assets/images/shop.gif'), gradientColors: ['#cd1c18', '#66023c'], },
+      { key: 'volunteeringCampaign', title: t('volunteeringCampaign'), icon: require('@/assets/images/volunteeringCampaign.gif'), gradientColors: ['#F6C324', '#F17E7E'], },
+      { key: 'education', title: t('education'), icon: require('@/assets/images/education.gif'), gradientColors: ['#8CA6DB', '#B993D6'], },
+      { key: 'awareness', title: t('awareness'), icon: require('@/assets/images/awareness.gif'), gradientColors: ['#f83600', '#fe8c00'], },
+    ];
 
   const firstRowCategories = categories.slice(0, 7);
   const secondRowCategories = categories.slice(7, 14);
@@ -82,7 +82,7 @@ export default function HomeScreen() {
 
       <StyledScrollView
         className="flex-1"
-        style={{ backgroundColor: isDark ? colors.background : '#f9fafb' }}
+        style={{ backgroundColor: colors.background }}
         showsVerticalScrollIndicator={false}
       >
         {/* Wrapper replaces contentContainerClassName */}
@@ -153,8 +153,8 @@ export default function HomeScreen() {
 
           {/* Shop Banner */}
           <StyledView
-              className="rounded-2xl my-5 overflow-hidden shadow-lg shadow-black/10"
-              style={{ backgroundColor: isDark ? colors.card : '#ffffff' }}
+            className="rounded-2xl my-5 overflow-hidden shadow-lg shadow-black/10"
+            style={{ backgroundColor: isDark ? colors.card : '#ffffff' }}
           >
             <StyledView className={`flex-row ${isRTL ? 'flex-row-reverse' : ''}`}>
               <StyledView className={`flex-1 p-5 justify-center ${isRTL ? 'items-end' : ''}`}>

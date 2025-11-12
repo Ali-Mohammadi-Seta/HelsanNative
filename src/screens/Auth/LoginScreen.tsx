@@ -15,7 +15,7 @@ export default function LoginScreen() {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const { colors, isDark } = useTheme();
-  
+
   const [phone, setPhone] = useState('');
   const [nationalId, setNationalId] = useState('');
   const [errors, setErrors] = useState<{ phone?: string; nationalId?: string }>({});
@@ -24,15 +24,15 @@ export default function LoginScreen() {
 
   const validateForm = (): boolean => {
     const newErrors: { phone?: string; nationalId?: string } = {};
-    
+
     if (!phone || phone.length !== 11) {
       newErrors.phone = t('rules.phonNumDigit');
     }
-    
+
     if (!nationalId || nationalId.length !== 10) {
       newErrors.nationalId = t('rules.natCodeDigit');
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -54,13 +54,13 @@ export default function LoginScreen() {
       },
       onError: (error: any) => {
         const errorCode = error.response?.data?.error?.errorCode;
-        
+
         if (errorCode === 'PREVIOUS_OTP_STILL_VALID') {
           dispatch(setUserLoginFormValues(payload));
           dispatch(setLoginStep('loginVerification'));
           router.push('/(auth)/verification?type=login');
         }
-        
+
         Toast.show({
           type: 'error',
           text1: error.response?.data?.messageFa || t('error'),
@@ -81,7 +81,7 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       className="flex-1"
     >
-      <ScrollView 
+      <ScrollView
         className={isDark ? 'bg-background-dark' : 'bg-white'}
         contentContainerStyle={{ padding: 20 }}
         showsVerticalScrollIndicator={false}
@@ -104,6 +104,8 @@ export default function LoginScreen() {
           type="number"
           error={errors.nationalId}
           disabled={loginMutation.isPending}
+          dir="ltr"
+
         />
 
         <Button

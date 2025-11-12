@@ -3,6 +3,7 @@ import React from 'react';
 import { TouchableOpacity, Text, Image, StyleSheet, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import { useTheme } from '@/styles/theme';
 
 const { width } = Dimensions.get('window');
 const numColumns = 3;
@@ -33,6 +34,9 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
     }
   };
 
+  const { colors, isDark } = useTheme();
+
+
   return (
     <TouchableOpacity
       onPress={handlePress}
@@ -45,14 +49,14 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
         end={{ x: 1, y: 1 }}
         style={[styles.gradient, { width: CARD_SIZE, height: CARD_SIZE }]}
       >
-        <Image 
-          source={icon} 
+        <Image
+          source={icon}
           style={styles.icon}
           resizeMode="contain"
         />
       </LinearGradient>
-      
-      <Text style={[styles.title, { width: CARD_SIZE }]} numberOfLines={2}>
+
+      <Text style={[styles.title, { width: CARD_SIZE } , {color: colors.text }]} numberOfLines={2} className=''>
         {title}
       </Text>
     </TouchableOpacity>

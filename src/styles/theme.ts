@@ -2,30 +2,40 @@ import { useAppSelector } from '@/redux/hooks';
 
 export const lightColors = {
   primary: '#16a34a',
+  primaryDark: '#15803d',
   secondary: '#0ea5a6',
-  background: '#FFFFFF',
-  card: '#F5F7F9',
-  text: '#0b0b0b',
+  background: '#ffffff',
+  surface: '#f8faf8', // Slightly green-tinted surface
+  card: '#ffffff',
+  text: '#1a1a1a',
   textSecondary: '#4b5563',
-  border: '#E5E7EB',
-  error: '#EF4444',
+  textTertiary: '#6b7280',
+  border: '#d1d5db',
+  divider: '#e5e7eb',
+  error: '#dc2626',
   success: '#16a34a',
-  warning: '#F59E0B',
-  info: '#3B82F6',
+  warning: '#f59e0b',
+  info: '#3b82f6',
+  overlay: 'rgba(0, 0, 0, 0.5)',
 };
 
 export const darkColors = {
   primary: '#22c55e',
+  primaryDark: '#16a34a',
   secondary: '#14b8a6',
-  background: '#0b0f14',
-  card: '#12171d',
-  text: '#FAFAFA', // brighter
-  textSecondary: '#CBD5E1',
-  border: '#374151',
-  error: '#F87171',
-  success: '#22C55E',
-  warning: '#FBBF24',
-  info: '#60A5FA',
+  background: '#30473c', // Dark green-tinted background instead of pure black
+  surface: '#1a1f1c', // Slightly lighter surface
+  card: '#1f2623', // Card background in dark mode
+  text: '#f0f4f1', // Light green-tinted text
+  textSecondary: '#a7b3aa',
+  textTertiary: '#7a857d',
+  border: '#2d3831',
+  divider: '#263029',
+  error: '#ef4444',
+  success: '#22c55e',
+  warning: '#fbbf24',
+  info: '#60a5fa',
+  overlay: 'rgba(0, 0, 0, 0.7)',
 };
 
 export const useTheme = () => {

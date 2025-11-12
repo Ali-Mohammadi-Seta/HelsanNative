@@ -122,6 +122,8 @@ export default function RegisterScreen() {
           error={errors.nationalId}
           disabled={registerMutation.isPending}
           maxLength={10}
+          dir="ltr"
+
         />
 
         {/* Jalali Date Picker Button */}

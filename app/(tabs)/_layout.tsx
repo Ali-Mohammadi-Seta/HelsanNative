@@ -18,10 +18,10 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: isDark ? '#888888' : '#999999',
+        tabBarInactiveTintColor: isDark ? colors.textSecondary : colors.textTertiary,
         tabBarStyle: {
           backgroundColor: isDark ? colors.card : colors.background,
-          borderTopColor: isDark ? colors.border : '#e0e0e0',
+          borderTopColor: colors.divider,
           borderTopWidth: 1,
           height: 60 + insets.bottom,
           paddingBottom: insets.bottom + 8,
@@ -32,6 +32,7 @@ export default function TabsLayout() {
           fontFamily: 'IRANSans',
           fontSize: 12,
           writingDirection,
+          color: isDark ? colors.text : colors.textSecondary,
           ...(Platform.OS === 'ios' ? { textAlign: 'center' as const } : {}),
         },
         headerShown: false,
@@ -64,8 +65,6 @@ export default function TabsLayout() {
           ),
         }}
       />
-
-      {/* Last tab: same route name, different icon intent based on auth */}
       <Tabs.Screen
         name="profile"
         options={{
