@@ -9,9 +9,13 @@ export { default as Header } from './Header';
 export { default as CategoryCard } from './CategoryCard';
 export { default as BackHeader } from './BackHeader';
 export { default as DatePickerJalali } from './DatePicker/DatePickerJalali';
+export { default as Questionnaire } from './EMR/Questionnaire';
+export { default as MyHealthInfo } from './EMR/MyHealthInfo';
 
-// ❌ REMOVED - These create circular dependencies:
-// export { default as ChooseCurrentRole } from './Auth/ChooseCurrentRole';
-// export { default as ForgotPassword } from './Auth/ForgotPassword';
-// export { default as ResetPassword } from './Auth/ResetPassword';
-// export { default as ResetPasswordVerification } from './Auth/ResetPasswordVerification';
+export { default as HealthSummary } from './EMR/components/HealthSummary';
+export { default as VitalSignCard } from './EMR/components/VitalSignCard';
+export { default as InfoSection } from './EMR/components/InfoSection';
+export { default as DiagnosisCard } from './EMR/components/DiagnosisCard';
+export { default as AllergiesCard } from './EMR/components/AllergiesCard';
+export { default as MedicationsCard } from './EMR/components/MedicationsCard';
+

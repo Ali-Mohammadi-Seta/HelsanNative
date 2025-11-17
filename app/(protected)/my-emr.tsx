@@ -1,47 +1,40 @@
-// app/(protected)/my-emr.tsx
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, ScrollView, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { BackHeader } from '@/components';
 import { useTheme } from '@/styles/theme';
-import { BackHeader } from '@/components'; // ✅ Import BackHeader
+import { useGetQuestionnaireStatus } from '@/lib/hooks/emr/useGetQuestionnaireStatus';
+import { useGetUserHealthInfo } from '@/lib/hooks/emr/useGetUserHealthInfo';
+import Questionnaire from '@/components/EMR/Questionnaire';
+import MyHealthInfo from '@/components/EMR/MyHealthInfo';
 
 export default function MyEmrScreen() {
   const { t } = useTranslation();
-  const { colors, isDark } = useTheme();
+  const { isDark } = useTheme();
+  const { questionnaireStatus, isLoading: isLoadingStatus } = useGetQuestionnaireStatus();
+  const { isLoading: isLoadingHealth } = useGetUserHealthInfo();
+
+  const isLoading = isLoadingStatus || isLoadingHealth;
 
   return (
-    <View style={{ flex: 1 }}>
-      {/* ✅ Custom Back Header */}
+    <View className={`flex-1 ${isDark ? 'dark' : ''}`}>
       <BackHeader title={t('myDoc')} />
 
       <ScrollView
-        style={[styles.container, { backgroundColor: isDark ? colors.background : '#ffffff' }]}
-        contentContainerStyle={styles.content}
+        className="flex-1 bg-background"
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
       >
-        <Text style={[styles.title, { color: isDark ? colors.text : '#000000' }]}>
-          📋 {t('myDoc')}
-        </Text>
-        <Text style={[styles.subtitle, { color: isDark ? colors.textSecondary : '#666666' }]}>
-          {t('healthRec')}
-        </Text>
+        {isLoading ? (
+          <View className="flex-1 justify-center items-center py-20">
+            <ActivityIndicator size="large" className="text-primary" />
+          </View>
+        ) : !questionnaireStatus?.selfExpressionFilledBefore ? (
+          <Questionnaire />
+        ) : (
+          <MyHealthInfo />
+        )}
       </ScrollView>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  content: {
-    padding: 20,
-  },
-  title: {
-    fontSize: 20,
-    fontFamily: 'IRANSans-Bold',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    fontFamily: 'IRANSans',
-  },
-});
