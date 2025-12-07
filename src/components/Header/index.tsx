@@ -1,13 +1,13 @@
-import React from "react";
-import { View, Text, TouchableOpacity, Image } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useTranslation } from "react-i18next";
-import { useDispatch, useSelector } from "react-redux";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { toggleTheme } from "@/redux/slices/themeSlice";
 import { RootState } from "@/redux/store";
 import { useTheme } from "@/styles/theme";
 import { changeLanguage } from "@/translations/i18n";
+import { Ionicons } from "@expo/vector-icons";
+import React from "react";
+import { useTranslation } from "react-i18next";
+import { Image, Text, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useDispatch, useSelector } from "react-redux";
 
 interface HeaderProps {
   title?: string;
@@ -34,10 +34,12 @@ const Header: React.FC<HeaderProps> = ({ title, showBack, onBackPress }) => {
     <View className={`${isRTL ? "flex-row" : "flex-row-reverse"} items-center gap-2`}>
       <Image source={require("@/assets/images/logo.png")} className="w-10 h-10" resizeMode="contain" />
       <View>
-        <Text className={`text-base font-bold text-primary-600 ${isRTL ? "text-left" : "text-right"}`}>
+        <Text style={{ fontSize: 16, fontFamily: 'IRANSans-Bold', color: colors.primary, textAlign: isRTL ? 'left' : 'right' }}>
           {t("logoTitle")}
         </Text>
-        <Text className="text-[9px] font-sans -mt-0.5 text-foreground-secondary">{t("footer.text3")}</Text>
+        <Text style={{ fontSize: 9, fontFamily: 'IRANSans', marginTop: -2, color: isDark ? colors.textSecondary : '#6b7280', textAlign: isRTL ? 'left' : 'right' }}>
+          {t("footer.text3")}
+        </Text>
       </View>
     </View>
   );
@@ -70,13 +72,20 @@ const Header: React.FC<HeaderProps> = ({ title, showBack, onBackPress }) => {
   );
 
   return (
-    <View className="border-b bg-surface border-divider" style={{ paddingTop: insets.top + 8 }}>
+    <View
+      style={{
+        paddingTop: insets.top + 8,
+        backgroundColor: isDark ? colors.card : '#ffffff',
+        borderBottomWidth: 1,
+        borderBottomColor: isDark ? colors.border : colors.divider,
+      }}
+    >
       <View className="flex flex-row items-center justify-between px-4 py-3 min-h-[56px]">
         <>
           <View className="flex-1 items-start">{showBack ? <BackButtonSection /> : <LogoSection />}</View>
           {title && (
             <View className="flex-2 items-center">
-              <Text className="text-lg font-bold text-foreground">{title}</Text>
+              <Text style={{ fontSize: 18, fontFamily: 'IRANSans-Bold', color: colors.text }}>{title}</Text>
             </View>
           )}
           <View className="flex-1 items-end">

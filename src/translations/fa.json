@@ -5,7 +5,7 @@
   "customersClub": "باشگاه شهروندان",
   "healthSocietyClub": "باشگاه سلامت یاران",
   "homeNursingCare": "خدمات در منزل",
-    "welcome": "به حلس222ان خوش آمدید",
+  "welcome": "به حلس222ان خوش آمدید",
   "darkMode": "حالت تاریک",
   "changeLanguage": "تغییر زبان",
   "locator": "مکان یاب",
@@ -316,10 +316,8 @@
     "consultationBannerTitle": "مشاوره آنلاین با بهترین پزشکان",
     "consultationBannerDesc": "بدون نیاز به مراجعه حضوری، در سریع‌ترین زمان ممکن با پزشک متخصص گفتگو کنید.",
     "consultationBannerButton": "دریافت مشاوره فوری",
-
     "mainBannerTitle": "سلامتی هوشمند، در دسترس شما",
     "mainBannerDesc": "از مشاوره آنلاین تا دریافت خدمات درمانی، همه جا همراهتان هستیم.",
-
     "shopBannerTitle": "خرید اینترنتی محصولات داروخانه‌ای",
     "shopBannerDesc": "خرید آسان، تحویل سریع درب منزل",
     "shopBannerButton": "مشاهده داروخانه ها"
@@ -457,6 +455,24 @@
   },
   "behdasht": "بهداشت",
   "salamat": "سلامت",
-  "applyFilter":"اعمال فیلتر",
-  "showFilters":"نمایش فیلتر"
+  "applyFilter": "اعمال فیلتر",
+  "showFilters": "نمایش فیلتر",
+  "selectPharmacyService": "یکی از سرویس‌های زیر را برای مشاهده داروخانه‌ها انتخاب کنید",
+  "selectHealthcareService": "یکی از سلامت‌یارها را برای دریافت خدمات انتخاب کنید",
+  "nearbyPlaces": "مکان‌های نزدیک",
+  "mapPlaceholder": "نقشه در اینجا نمایش داده می‌شود",
+  "results": "نتیجه",
+  "appearance": "ظاهر",
+  "about": "درباره",
+  "appVersion": "نسخه برنامه",
+  "language": "زبان",
+  "personalInfo": "اطلاعات شخصی",
+  "firstName": "نام",
+  "phoneNumber": "شماره تلفن",
+  "pleaseLoginToAccessProfile": "برای دسترسی به پروفایل وارد شوید",
+  "logoutConfirmation": "آیا مطمئن هستید که می‌خواهید خارج شوید؟",
+  "comingSoon": "به زودی...",
+  "explore": "کاوش",
+  "success": "موفق",
+  "user": "کاربر"
 }

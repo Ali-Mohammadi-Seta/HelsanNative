@@ -1,11 +1,11 @@
 // app/(tabs)/home.tsx
-import React from 'react';
-import { View, Text, ScrollView, Image, Dimensions } from 'react-native';
-import { useTranslation } from 'react-i18next';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Button, CategoryCard, Header } from '@/components';
 import { useTheme } from '@/styles/theme';
-import { Header, CategoryCard, Button } from '@/components';
+import { LinearGradient } from 'expo-linear-gradient';
 import { styled } from "nativewind";
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { Dimensions, Image, ScrollView, Text, View } from 'react-native';
 
 // Create styled components for NativeWind compatibility
 const StyledView = styled(View);
@@ -32,22 +32,22 @@ export default function HomeScreen() {
   }> = [
       { key: 'places', title: t('header.places'), icon: require('@/assets/images/clinic.gif'), url: '/medical-centers', gradientColors: ['#ff512f', '#dd2476'], },
       { key: 'drugstore', title: t('drugstore'), icon: require('@/assets/images/drugs.gif'), url: '/pharmacies', gradientColors: ['#6a5acd', '#c54b8c', '#b284be'], },
-      { key: 'paraclinic', title: t('paraclinic'), icon: require('@/assets/images/paraclinic.gif'), gradientColors: ['#cd5700', '#fd9600', '#bfdd50'], },
+      { key: 'paraclinic', title: t('paraclinic'), icon: require('@/assets/images/paraclinic.gif'), url: '/paraclinic', gradientColors: ['#cd5700', '#fd9600', '#bfdd50'], },
       { key: 'healthcareCompanies', title: t('healthcareCompanies'), icon: require('@/assets/images/healthcareCompanies.gif'), url: '/healthcare-companies', gradientColors: ['#000080', '#00bfff'], },
-      { key: 'doctorsAndCounselingPsychologist', title: t('doctorsAndCounselingPsychologist'), icon: require('@/assets/images/doctorsAndCounselingPsychologist.gif'), gradientColors: ['#228b22', '#32cd32'], },
-      { key: 'taghziye', title: t('taghziye'), icon: require('@/assets/images/taghziye.gif'), gradientColors: ['#4169ff', '#89cff0'], },
-      { key: 'healthRoom', title: t('healthRoom'), icon: require('@/assets/images/tea.gif'), gradientColors: ['#09610a', '#67f588'], },
-      { key: 'insurance', title: t('insurance'), icon: require('@/assets/images/insurance.gif'), gradientColors: ['#e056fd', '#000000'], },
-      { key: 'healthTourism', title: t('healthTourism'), icon: require('@/assets/images/healthTourism.gif'), gradientColors: ['#4169ff', '#89cff0'], },
-      { key: 'exercise', title: t('exercise'), icon: require('@/assets/images/running.gif'), gradientColors: ['#ff6677', '#f48e5f', '#ff5047'], },
-      { key: 'transportation', title: t('transportation'), icon: require('@/assets/images/ambulance.gif'), gradientColors: ['#e34234', '#ff3800'], },
-      { key: 'homeNursingCare', title: t('homeNursingCare'), icon: require('@/assets/images/homeNursingCare.gif'), gradientColors: ['#3bb78f', '#0bab64'], },
-      { key: 'locator', title: t('locator'), icon: require('@/assets/images/mapLocator.gif'), gradientColors: ['#f7971e', '#ffd200'], },
-      { key: 'creditPayment', title: t('creditPayment'), icon: require('@/assets/images/creditPayment.gif'), gradientColors: ['#63d471', '#233329'], },
-      { key: 'shops', title: t('shops'), icon: require('@/assets/images/shop.gif'), gradientColors: ['#cd1c18', '#66023c'], },
-      { key: 'volunteeringCampaign', title: t('volunteeringCampaign'), icon: require('@/assets/images/volunteeringCampaign.gif'), gradientColors: ['#F6C324', '#F17E7E'], },
-      { key: 'education', title: t('education'), icon: require('@/assets/images/education.gif'), gradientColors: ['#8CA6DB', '#B993D6'], },
-      { key: 'awareness', title: t('awareness'), icon: require('@/assets/images/awareness.gif'), gradientColors: ['#f83600', '#fe8c00'], },
+      { key: 'doctorsAndCounselingPsychologist', title: t('doctorsAndCounselingPsychologist'), icon: require('@/assets/images/doctorsAndCounselingPsychologist.gif'), url: '/doctors-consultation', gradientColors: ['#228b22', '#32cd32'], },
+      { key: 'taghziye', title: t('taghziye'), icon: require('@/assets/images/taghziye.gif'), url: '/nutrition', gradientColors: ['#4169ff', '#89cff0'], },
+      { key: 'healthRoom', title: t('healthRoom'), icon: require('@/assets/images/tea.gif'), url: '/health-room', gradientColors: ['#09610a', '#67f588'], },
+      { key: 'insurance', title: t('insurance'), icon: require('@/assets/images/insurance.gif'), url: '/insurances', gradientColors: ['#e056fd', '#000000'], },
+      { key: 'healthTourism', title: t('healthTourism'), icon: require('@/assets/images/healthTourism.gif'), url: '/health-tourism', gradientColors: ['#4169ff', '#89cff0'], },
+      { key: 'exercise', title: t('exercise'), icon: require('@/assets/images/running.gif'), url: '/exercise', gradientColors: ['#ff6677', '#f48e5f', '#ff5047'], },
+      { key: 'transportation', title: t('transportation'), icon: require('@/assets/images/ambulance.gif'), url: '/transportation', gradientColors: ['#e34234', '#ff3800'], },
+      { key: 'homeNursingCare', title: t('homeNursingCare'), icon: require('@/assets/images/homeNursingCare.gif'), url: '/home-nursing', gradientColors: ['#3bb78f', '#0bab64'], },
+      { key: 'locator', title: t('locator'), icon: require('@/assets/images/mapLocator.gif'), url: '/(tabs)/map', gradientColors: ['#f7971e', '#ffd200'], },
+      { key: 'creditPayment', title: t('creditPayment'), icon: require('@/assets/images/creditPayment.gif'), url: '/credit-payment', gradientColors: ['#63d471', '#233329'], },
+      { key: 'shops', title: t('shops'), icon: require('@/assets/images/shop.gif'), url: '/shops', gradientColors: ['#cd1c18', '#66023c'], },
+      { key: 'volunteeringCampaign', title: t('volunteeringCampaign'), icon: require('@/assets/images/volunteeringCampaign.gif'), url: '/volunteering', gradientColors: ['#F6C324', '#F17E7E'], },
+      { key: 'education', title: t('education'), icon: require('@/assets/images/education.gif'), url: '/education', gradientColors: ['#8CA6DB', '#B993D6'], },
+      { key: 'awareness', title: t('awareness'), icon: require('@/assets/images/awareness.gif'), url: '/awareness', gradientColors: ['#f83600', '#fe8c00'], },
     ];
 
   const firstRowCategories = categories.slice(0, 7);
@@ -89,15 +89,21 @@ export default function HomeScreen() {
         <StyledView className="p-4 pb-8">
           {/* Consultation Banner */}
           <StyledLinearGradient
-            colors={['#fee2e2', '#fecaca']}
+            colors={isDark ? ['#4a2c2c', '#5c3a3a'] : ['#fee2e2', '#fecaca']}
             className="rounded-2xl p-5 mb-5 shadow-lg shadow-black/10"
           >
             <StyledView className={`flex-row items-center ${isRTL ? 'flex-row-reverse' : ''}`}>
               <StyledView className={`flex-1 pr-4 ${isRTL ? 'items-end' : ''}`}>
-                <StyledText className={`text-lg font-['IRANSans-Bold'] text-gray-800 mb-2 ${isRTL ? 'text-right' : ''}`}>
+                <StyledText
+                  className={`text-lg mb-2 ${isRTL ? 'text-right' : ''}`}
+                  style={{ fontFamily: 'IRANSans-Bold', color: isDark ? '#fecaca' : '#1f2937' }}
+                >
                   {t('homePage.consultationBannerTitle')}
                 </StyledText>
-                <StyledText className={`text-sm font-['IRANSans'] ml-4 text-gray-600 mb-3 leading-5 ${isRTL ? 'text-right' : ''}`}>
+                <StyledText
+                  className={`text-sm mb-3 leading-5 ${isRTL ? 'text-right' : ''}`}
+                  style={{ fontFamily: 'IRANSans', color: isDark ? '#fca5a5' : '#4b5563' }}
+                >
                   {t('homePage.consultationBannerDesc')}
                 </StyledText>
                 <StyledButton type="primary" size="small" className={`mt-2 ${isRTL ? 'self-end' : 'self-start'}`}>
@@ -119,7 +125,7 @@ export default function HomeScreen() {
 
           {/* Main Banner */}
           <StyledLinearGradient
-            colors={['#fecaca', '#ecdccf', '#fecaca']}
+            colors={isDark ? ['#3d2a20', '#4a3830', '#3d2a20'] : ['#fecaca', '#ecdccf', '#fecaca']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             className="rounded-2xl p-5 my-5 shadow-lg shadow-black/10 "
@@ -136,10 +142,16 @@ export default function HomeScreen() {
                   className="w-10 h-10 mb-2"
                   resizeMode="contain"
                 />
-                <StyledText className={`text-base font-['IRANSans-Bold'] text-orange-900 mb-2 ${isRTL ? 'text-start' : ''}`}>
+                <StyledText
+                  className={`text-base mb-2 ${isRTL ? 'text-start' : ''}`}
+                  style={{ fontFamily: 'IRANSans-Bold', color: isDark ? '#fed7aa' : '#7c2d12' }}
+                >
                   {t('homePage.mainBannerTitle')}
                 </StyledText>
-                <StyledText className={`text-sm font-['IRANSans'] text-orange-900 ${isRTL ? 'text-right' : ''}`}>
+                <StyledText
+                  className={`text-sm ${isRTL ? 'text-right' : ''}`}
+                  style={{ fontFamily: 'IRANSans', color: isDark ? '#fdba74' : '#7c2d12' }}
+                >
                   {t('homePage.mainBannerDesc')}
                 </StyledText>
               </StyledView>
@@ -158,10 +170,16 @@ export default function HomeScreen() {
           >
             <StyledView className={`flex-row ${isRTL ? 'flex-row-reverse' : ''}`}>
               <StyledView className={`flex-1 p-5 justify-center ${isRTL ? 'items-end' : ''}`}>
-                <StyledText className={`text-base font-['IRANSans-Bold'] text-gray-800 mb-2 ${isRTL ? 'text-right' : ''}`}>
+                <StyledText
+                  className={`text-base mb-2 ${isRTL ? 'text-right' : ''}`}
+                  style={{ fontFamily: 'IRANSans-Bold', color: isDark ? colors.text : '#1f2937' }}
+                >
                   {t('homePage.shopBannerTitle')}
                 </StyledText>
-                <StyledText className={`text-sm font-['IRANSans'] text-gray-600 mb-3 ${isRTL ? 'text-right' : ''}`}>
+                <StyledText
+                  className={`text-sm mb-3 ${isRTL ? 'text-right' : ''}`}
+                  style={{ fontFamily: 'IRANSans', color: isDark ? colors.textSecondary : '#4b5563' }}
+                >
                   {t('homePage.shopBannerDesc')}
                 </StyledText>
                 <StyledButton type="primary" size="small" className="self-start">

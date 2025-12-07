@@ -1,164 +1,161 @@
 // app/(tabs)/profile.tsx
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
-import { router } from 'expo-router';
+import { Button, Header } from '@/components';
+import { useLogout, useUserProfile } from '@/lib/api/useAuth';
+import { removeTokens } from '@/lib/auth/tokenStorage';
+import { setIsLoggedIn } from '@/redux/slices/authSlice';
 import { RootState } from '@/redux/store';
 import { useTheme } from '@/styles/theme';
-import { Button, Header } from '@/components'; // ✅ ADD Header
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
+import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
 
 export default function ProfileScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors, isDark } = useTheme();
+  const dispatch = useDispatch();
   const { isLoggedIn } = useSelector((state: RootState) => state.auth);
+  const isRTL = i18n.language === 'fa';
+
+  // Fetch user profile when logged in
+  const { data: userProfile, isLoading } = useUserProfile(isLoggedIn);
+  const logoutMutation = useLogout();
+
+  const handleLogout = async () => {
+    Alert.alert(
+      t('logOut'),
+      t('logoutConfirmation') || 'آیا مطمئن هستید که می‌خواهید خارج شوید؟',
+      [
+        { text: t('cancel') || 'انصراف', style: 'cancel' },
+        {
+          text: t('logOut'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await logoutMutation.mutateAsync();
+              await removeTokens();
+              dispatch(setIsLoggedIn(false));
+              router.replace('/(tabs)/home');
+            } catch (error) {
+              await removeTokens();
+              dispatch(setIsLoggedIn(false));
+              router.replace('/(tabs)/home');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleSettings = () => {
+    router.push('/(protected)/settings');
+  };
 
   // If not logged in, show login button
   if (!isLoggedIn) {
     return (
-      <View style={{ flex: 1 }}>
-        {/* ✅ ADD HEADER */}
+      <View className="flex-1">
         <Header title={t('account')} />
-        
-        <View style={[styles.container, { backgroundColor: isDark ? colors.background : '#ffffff' }]}>
-          <View style={styles.content}>
-            <Ionicons 
-              name="person-circle-outline" 
-              size={100} 
-              color={isDark ? colors.textSecondary : '#cccccc'} 
-            />
-            <Text style={[styles.subtitle, { color: isDark ? colors.textSecondary : '#666666' }]}>
-              Please login to access your profile
-            </Text>
-            
-            <Button
-              type="primary"
-              size="large"
-              onPress={() => router.push('/(auth)')}
-              style={styles.loginButton}
-            >
-              {t('user.login')}
-            </Button>
-          </View>
+
+        <View className={`flex-1 justify-center items-center p-5 ${isDark ? 'bg-background' : 'bg-white'}`}>
+          <Ionicons name="person-circle-outline" size={100} color={isDark ? colors.textSecondary : '#cccccc'} />
+          <Text className={`text-base text-center mb-6 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} style={{ fontFamily: 'IRANSans' }}>
+            {t('pleaseLoginToAccessProfile') || 'برای دسترسی به پروفایل وارد شوید'}
+          </Text>
+
+          <Button type="primary" size="large" onPress={() => router.push('/(auth)')} style={{ minWidth: 200 }}>
+            {t('user.login')}
+          </Button>
         </View>
       </View>
     );
   }
 
+  // Get display name
+  const firstName = userProfile?.firstName || '';
+  const lastName = userProfile?.lastName || '';
+  const displayName = firstName && lastName ? `${firstName} ${lastName}` : (userProfile?.phone || t('user') || 'کاربر');
+
   // If logged in, show profile options
   return (
-    <View style={{ flex: 1 }}>
-      {/* ✅ ADD HEADER */}
-      <Header title={t('myProfile')} />
-      
-      <View style={[styles.container, { backgroundColor: isDark ? colors.background : '#f9fafb' }]}>
-        <View style={styles.header}>
-          <Ionicons 
-            name="person-circle" 
-            size={80} 
-            color={colors.primary} 
-          />
-          <Text style={[styles.userName, { color: isDark ? colors.text : '#000000' }]}>
-            Welcome Back!
+    <View className="flex-1">
+      <Header title={t('account')} />
+
+      <ScrollView
+        className={`flex-1 ${isDark ? 'bg-background' : 'bg-gray-50'}`}
+        contentContainerStyle={{ paddingBottom: 40 }}
+      >
+        {/* Profile Header */}
+        <View className={`items-center p-6 mx-4 mt-4 rounded-2xl shadow-lg ${isDark ? 'bg-card' : 'bg-white'}`}>
+          <View className="w-[90px] h-[90px] rounded-full justify-center items-center mb-3 bg-primary/20">
+            <Ionicons name="person" size={50} color={colors.primary} />
+          </View>
+          <Text className={`text-xl ${isDark ? 'text-white' : 'text-black'}`} style={{ fontFamily: 'IRANSans-Bold' }}>
+            {displayName}
           </Text>
+          {userProfile?.phone && (
+            <Text className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} style={{ fontFamily: 'IRANSans' }}>
+              {userProfile.phone}
+            </Text>
+          )}
         </View>
 
-        <View style={styles.menu}>
-          <TouchableOpacity 
-            style={[styles.menuItem, { backgroundColor: isDark ? colors.card : '#ffffff' }]}
+        {/* Menu Items */}
+        <View className="p-4">
+          <TouchableOpacity
+            className={`flex-row items-center p-4 rounded-2xl mb-2.5 shadow-sm ${isDark ? 'bg-card' : 'bg-white'}`}
             onPress={() => router.push('/(protected)/edit-profile')}
           >
-            <Ionicons name="person-outline" size={24} color={colors.primary} />
-            <Text style={[styles.menuText, { color: isDark ? colors.text : '#000000' }]}>
+            <View className="w-[42px] h-[42px] rounded-xl justify-center items-center bg-primary/15">
+              <Ionicons name="person-outline" size={22} color={colors.primary} />
+            </View>
+            <Text className={`flex-1 text-base mx-3.5 ${isDark ? 'text-white' : 'text-black'} ${isRTL ? 'text-right' : 'text-left'}`} style={{ fontFamily: 'IRANSans' }}>
               {t('myProfile')}
             </Text>
-            <Ionicons name="chevron-forward" size={20} color={isDark ? colors.textSecondary : '#999999'} />
+            <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={20} color={isDark ? colors.textSecondary : '#999999'} />
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={[styles.menuItem, { backgroundColor: isDark ? colors.card : '#ffffff' }]}
+          <TouchableOpacity
+            className={`flex-row items-center p-4 rounded-2xl mb-2.5 shadow-sm ${isDark ? 'bg-card' : 'bg-white'}`}
             onPress={() => router.push('/(protected)/my-emr')}
           >
-            <Ionicons name="heart-outline" size={24} color={colors.primary} />
-            <Text style={[styles.menuText, { color: isDark ? colors.text : '#000000' }]}>
-              {t('myDoc')}
+            <View className="w-[42px] h-[42px] rounded-xl justify-center items-center bg-red-500/15">
+              <Ionicons name="heart-outline" size={22} color="#ef4444" />
+            </View>
+            <Text className={`flex-1 text-base mx-3.5 ${isDark ? 'text-white' : 'text-black'} ${isRTL ? 'text-right' : 'text-left'}`} style={{ fontFamily: 'IRANSans' }}>
+              {t('myDoc') || 'پرونده سلامت من'}
             </Text>
-            <Ionicons name="chevron-forward" size={20} color={isDark ? colors.textSecondary : '#999999'} />
+            <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={20} color={isDark ? colors.textSecondary : '#999999'} />
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={[styles.menuItem, { backgroundColor: isDark ? colors.card : '#ffffff' }]}
+          <TouchableOpacity
+            className={`flex-row items-center p-4 rounded-2xl mb-2.5 shadow-sm ${isDark ? 'bg-card' : 'bg-white'}`}
+            onPress={handleSettings}
           >
-            <Ionicons name="settings-outline" size={24} color={colors.primary} />
-            <Text style={[styles.menuText, { color: isDark ? colors.text : '#000000' }]}>
-              {t('settings')}
+            <View className="w-[42px] h-[42px] rounded-xl justify-center items-center bg-indigo-500/15">
+              <Ionicons name="settings-outline" size={22} color="#6366f1" />
+            </View>
+            <Text className={`flex-1 text-base mx-3.5 ${isDark ? 'text-white' : 'text-black'} ${isRTL ? 'text-right' : 'text-left'}`} style={{ fontFamily: 'IRANSans' }}>
+              {t('settings') || 'تنظیمات'}
             </Text>
-            <Ionicons name="chevron-forward" size={20} color={isDark ? colors.textSecondary : '#999999'} />
+            <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={20} color={isDark ? colors.textSecondary : '#999999'} />
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={[styles.menuItem, { backgroundColor: isDark ? colors.card : '#ffffff' }]}
+          <TouchableOpacity
+            className={`flex-row items-center p-4 rounded-2xl mt-5 shadow-sm ${isDark ? 'bg-card' : 'bg-white'}`}
+            onPress={handleLogout}
           >
-            <Ionicons name="log-out-outline" size={24} color="#dc2626" />
-            <Text style={[styles.menuText, { color: '#dc2626' }]}>
-              {t('logOut')}
+            <View className="w-[42px] h-[42px] rounded-xl justify-center items-center bg-red-600/15">
+              <Ionicons name="log-out-outline" size={22} color="#dc2626" />
+            </View>
+            <Text className={`flex-1 text-base mx-3.5 text-red-600 ${isRTL ? 'text-right' : 'text-left'}`} style={{ fontFamily: 'IRANSans' }}>
+              {t('logOut') || 'خروج'}
             </Text>
-            <Ionicons name="chevron-forward" size={20} color="#dc2626" />
+            <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={20} color="#dc2626" />
           </TouchableOpacity>
         </View>
-      </View>
+      </ScrollView>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  header: {
-    alignItems: 'center',
-    padding: 20,
-    paddingTop: 40,
-  },
-  userName: {
-    fontSize: 24,
-    fontFamily: 'IRANSans-Bold',
-    marginTop: 16,
-  },
-  subtitle: {
-    fontSize: 16,
-    fontFamily: 'IRANSans',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  loginButton: {
-    minWidth: 200,
-  },
-  menu: {
-    padding: 20,
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  menuText: {
-    flex: 1,
-    fontSize: 16,
-    fontFamily: 'IRANSans',
-    marginLeft: 12,
-  },
-});

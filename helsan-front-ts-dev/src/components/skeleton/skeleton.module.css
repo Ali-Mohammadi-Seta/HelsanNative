@@ -1,0 +1,12 @@
+/* global.css / index.css (NOT a CSS module) */
+.shimmer {
+  background: linear-gradient(90deg, #ededed 25%, #dcdcdc 37%, #ededed 63%);
+  background-size: 400% 100%;
+  animation: shimmer 2s ease infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+}

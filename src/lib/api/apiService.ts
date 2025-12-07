@@ -1,6 +1,6 @@
 // src/lib/api/apiService.ts
-import apiClient from './apiClient';
 import endpoints from '@/config/endpoints';
+import apiClient from './apiClient';
 
 const extractData = <T>(response: { data: { data: T } }): T => response.data.data;
 
@@ -85,8 +85,27 @@ export const getDoctorsListApi = async (filters: {
 
 
 
-// Export all
+// Export all with proper aliases for useAuth.ts compatibility
 export const apiService = {
+  // Auth - using short names for hooks
+  login: loginApi,
+  register: registerApi,
+  verifyLogin: verifyLoginApi,
+  verifyRegister: verifyRegisterApi,
+  checkAuthorize: checkAuthorizeApi,
+  logout: logoutApi,
+  // User Profile
+  getUserProfile: getUserProfileApi,
+  getPotentialRoles: getPotentialRolesApi,
+  // EMR
+  getQuestionnaireStatus: getQuestionnaireStatusApi,
+  getQuestionnaireCachedInfo: getQuestionnaireCachedInfoApi,
+  saveDoneQuestionnaire: saveDoneQuestionnaireApi,
+  getUserHealthInfo: getUserHealthInfoApi,
+  getEmrServices: getEmrServicesApi,
+  // Doctors
+  getDoctorsList: getDoctorsListApi,
+  // Also export with Api suffix for backward compatibility
   loginApi,
   registerApi,
   verifyLoginApi,

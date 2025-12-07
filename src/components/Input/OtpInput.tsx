@@ -1,20 +1,20 @@
 // src/components/Input/OtpInput.tsx
-import React, { useRef, useState, useEffect } from 'react';
-import {
-  View,
-  TextInput,
-  StyleSheet,
-  ViewStyle,
-  TextStyle, // ✅ Keep this
-} from 'react-native';
 import { useTheme } from '@/styles/theme';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  StyleSheet,
+  TextInput,
+  TextStyle,
+  View,
+  ViewStyle,
+} from 'react-native';
 
 const toEnglishDigits = (str: string): string => {
   const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
   const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
-  
+
   return str.replace(/[۰-۹]/g, (w) => persianNumbers.indexOf(w).toString())
-            .replace(/[٠-٩]/g, (w) => arabicNumbers.indexOf(w).toString());
+    .replace(/[٠-٩]/g, (w) => arabicNumbers.indexOf(w).toString());
 };
 
 interface OtpInputProps {
@@ -52,7 +52,7 @@ const OtpInput: React.FC<OtpInputProps> = ({
 
   const handleChange = (text: string, index: number) => {
     const convertedText = toEnglishDigits(text).replace(/\D/g, '');
-    
+
     if (!convertedText) {
       const newDigits = [...digits];
       newDigits[index] = '';
@@ -69,7 +69,7 @@ const OtpInput: React.FC<OtpInputProps> = ({
       }
       setDigits(newDigits);
       onChangeText?.(newDigits.join(''));
-      
+
       const nextIndex = Math.min(index + convertedText.length, length - 1);
       inputRefs.current[nextIndex]?.focus();
       return;
@@ -102,7 +102,7 @@ const OtpInput: React.FC<OtpInputProps> = ({
     <View
       style={[
         styles.container,
-        { flexDirection: dir === 'rtl' ? 'row-reverse' : 'row' },
+        { flexDirection: 'row' }, // OTP should ALWAYS be LTR, numbers read left-to-right
         containerStyle,
       ]}
     >
@@ -126,10 +126,12 @@ const OtpInput: React.FC<OtpInputProps> = ({
               borderBottomColor: digits[index]
                 ? colors.primary
                 : isDark
-                ? colors.border
-                : '#e0e0e0',
+                  ? colors.border
+                  : '#e0e0e0',
               color: isDark ? colors.text : '#000000',
               fontFamily: 'IRANSans-Medium',
+              writingDirection: 'ltr', // OTP numbers should always be LTR
+              textAlign: 'center',
             },
             boxStyle, // ✅ Now correctly typed as TextStyle
             textStyle,

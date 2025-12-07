@@ -1,0 +1,232 @@
+@import "tailwindcss";
+@import "./font.css";
+
+@theme {
+  --breakpoint-2xs: 300px;
+  --breakpoint-xs: 500px;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-mdx: 810px;
+  --breakpoint-lg: 992px;
+  --breakpoint-1xl: 1200px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+  --font-IRANSans: IRANSans;
+  --color-colorPrimary: #16a34a;
+  --color-colorSecondary: #343434;
+}
+
+:root {
+  font-family: IRANSans, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  font-size: 16px;
+  padding: 0;
+  margin: 0;
+}
+html body * {
+  font-family: IRANSans, system-ui, Avenir, Helvetica, Arial, sans-serif !important;
+  font-style: normal;
+}
+.cards-style > .ant-card-body {
+  padding: 0px !important;
+}
+
+.container {
+  width: 100%;
+  margin: 0 auto;
+}
+@media (min-width: 576px) {
+  .container {
+    max-width: 540px;
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: 720px;
+  }
+}
+
+@media (min-width: 992px) {
+  .container {
+    max-width: 960px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .container {
+    max-width: 1140px;
+  }
+}
+@media (min-width: 1600px) {
+  .container {
+    max-width: 1500px;
+  }
+}
+
+.login-registering .ant-tabs > .ant-tabs-nav {
+  margin-bottom: 34px;
+}
+.login-registering .ant-tabs > .ant-tabs-nav .ant-tabs-nav-wrap {
+  overflow: visible;
+}
+
+.login-registering .ant-tabs > .ant-tabs-nav .ant-tabs-nav-list {
+  width: 100%;
+}
+.login-registering .ant-tabs > .ant-tabs-nav .ant-tabs-nav-list .ant-tabs-tab {
+  width: 50%;
+  margin: 0;
+  font-size: 16px;
+  color: #aeafb0;
+  font-weight: "500";
+  justify-content: center;
+}
+.login-registering
+  .ant-tabs
+  > .ant-tabs-nav
+  .ant-tabs-nav-list
+  .ant-tabs-tab
+  > .ant-tabs-tab-active {
+  color: #0a9c0273 !important;
+}
+.login-registering
+  .ant-tabs
+  > .ant-tabs-nav
+  .ant-tabs-nav-list
+  .ant-tabs-ink-bar {
+  height: 4px;
+  bottom: -1px;
+  border-radius: 2px;
+  width: 50% !important;
+  box-shadow: 0px 4px 15px #0a9c0273;
+}
+
+/* .login-input {
+  margin-bottom: 15px;
+} */
+.login-input .ant-input {
+  text-align: start;
+}
+
+.login-input .input-suffix,
+.login-input .ant-input-suffix {
+  font-size: 18px;
+  color: #aeafb0;
+}
+
+.inputIcon-style .icon-tabler,
+.inputIcon-style .icon-tabler-calendar-event {
+  color: #343434;
+  left: auto !important;
+  margin-right: 10px;
+}
+.code-inputs {
+  width: 100% !important;
+  direction: ltr;
+  margin-bottom: 27px;
+}
+.code-inputs div {
+  display: grid;
+  gap: 0 35px;
+  grid-gap: 0 35px;
+  justify-content: center;
+  grid-template-columns: 24px 24px 24px 24px 24px 24px;
+}
+.code-inputs .styles_spin__6y_8G {
+  font-size: 26px !important;
+}
+.code-inputs .styles_loading__Z65VQ {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  color: #16a34a !important;
+  text-align: center !important;
+}
+
+/* Ensure the SVG is also centered */
+.code-inputs .styles_loading__Z65VQ svg {
+  color: #16a34a !important;
+}
+
+/* Optional: Center the entire loading container */
+.code-inputs .styles_react-code-input-container__tpiKG {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+.code-inputs input {
+  box-shadow: none;
+  width: 25px !important;
+  height: 25px !important;
+  border-radius: 0 !important;
+  border-width: 0 0 1px 0 !important;
+  color: #16a34a !important;
+}
+.code-inputs input:focus {
+  outline: none !important;
+  border-bottom: 1px solid #16a34a !important;
+  caret-color: #16a34a !important;
+}
+
+.custom-datepicker .rmdp-header-values,
+.custom-datepicker .rmdp-week-day {
+  color: #16a34a !important;
+  font-weight: bold;
+}
+
+.custom-datepicker .rmdp-arrow,
+.custom-datepicker .rmdp-arrow svg {
+  border-color: #16a34a !important;
+  fill: #16a34a !important;
+}
+
+.custom-datepicker .rmdp-day.rmdp-selected span,
+.custom-datepicker .rmdp-day:not(.rmdp-today).rmdp-selected {
+  background-color: #16a34a !important;
+  color: white !important;
+  border-radius: 100% !important;
+}
+
+.custom-datepicker .rmdp-day.rmdp-today span {
+  background-color: #9cce9f !important;
+  color: white !important;
+}
+
+.custom-datepicker .rmdp-day:not(.rmdp-disabled):hover span:not(:empty) {
+  background-color: #b7eb8f !important;
+  color: white !important;
+  border-radius: 100% !important;
+}
+.custom-datepicker .rmdp-arrow-container:hover {
+  background-color: white;
+}
+@media (min-width: 300px) and (max-width: 430px) {
+  .code-inputs div {
+    display: grid;
+    grid-gap: 0 15px;
+  }
+}
+
+.Toastify__toast {
+  font-size: 16px;
+  font-family: IRANSans, tahoma !important;
+}
+.ant-select-arrow {
+  margin-top: 3px !important;
+}
+
+
+/* Removes Auto Highlitghed Input Bg  */
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px white inset !important;
+}
+
+input:-webkit-autofill {
+    -webkit-text-fill-color: #000 !important;
+}

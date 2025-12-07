@@ -1,9 +1,7 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Modal as RNModal, StyleSheet } from 'react-native';
-import { useTranslation } from 'react-i18next';
-import moment from 'moment-jalaali';
 import { useTheme } from '@/styles/theme';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Button from '../Button';
 
 interface DatePickerJalaliProps {
@@ -62,7 +60,7 @@ const DatePickerJalali: React.FC<DatePickerJalaliProps> = ({
               onPress={() => setYear(y)}
               style={[
                 styles.option,
-                year === y && { backgroundColor: colors.primary },
+                { backgroundColor: year === y ? colors.primary : (isDark ? colors.surface : '#f5f5f5') },
               ]}
             >
               <Text style={[
@@ -88,7 +86,7 @@ const DatePickerJalali: React.FC<DatePickerJalaliProps> = ({
               onPress={() => setMonth(idx + 1)}
               style={[
                 styles.option,
-                month === idx + 1 && { backgroundColor: colors.primary },
+                { backgroundColor: month === idx + 1 ? colors.primary : (isDark ? colors.surface : '#f5f5f5') },
               ]}
             >
               <Text style={[
@@ -114,7 +112,7 @@ const DatePickerJalali: React.FC<DatePickerJalaliProps> = ({
               onPress={() => setDay(d)}
               style={[
                 styles.option,
-                day === d && { backgroundColor: colors.primary },
+                { backgroundColor: day === d ? colors.primary : (isDark ? colors.surface : '#f5f5f5') },
               ]}
             >
               <Text style={[
@@ -158,7 +156,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
-    backgroundColor: '#f5f5f5',
+    // Note: backgroundColor should be set dynamically in the component
   },
   optionText: {
     fontSize: 14,

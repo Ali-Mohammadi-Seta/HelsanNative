@@ -1,0 +1,138 @@
+stages:
+  - ci-stage
+  - cd-stage
+  - ci-prod
+  - cd-prod
+
+variables:
+  COMPOSE_PATH: "/opt/servers"
+  COMPOSE_SERVICE: "helsan-front"
+  LOCAL_IMAGE_NAME: '$DOCKER_REGISTRY/servers/$COMPOSE_SERVICE:$CI_COMMIT_SHORT_SHA'
+  SERVICE: 'helsan-front'
+  STACK: 'helsan'
+  PROJECT: 'hub'
+
+before_script:
+  - |
+    set -euo pipefail
+
+    echo "Logging into default Docker Registry (if provided)…"
+    if [[ -n "${DOCKER_REGISTRY:-}" && -n "${DOCKER_REGISTRY_USERNAME:-}" && -n "${DOCKER_REGISTRY_PASSWORD:-}" ]]; then
+      echo "$DOCKER_REGISTRY_PASSWORD" \
+        | docker login "$DOCKER_REGISTRY" -u "$DOCKER_REGISTRY_USERNAME" --password-stdin
+    fi
+
+    # ---- pick ZONE strictly by branch ----
+    case "${CI_COMMIT_BRANCH:-}" in
+      main) ZONE="ZONE35" ;;   # prod
+      dev)  ZONE="ZONE37" ;;   # stage/dev
+      *)
+        echo "❌ ERROR: Branch '${CI_COMMIT_BRANCH:-}' is not mapped to a ZONE. Aborting." >&2
+        exit 2
+        ;;
+    esac
+
+    # ---- per-zone FRONT envs (hardcoded per your spec) ----
+    case "$ZONE" in
+      ZONE35)
+        VITE_API_URL="https://inhso.ir/api"
+        VITE_BEHDASHT_CALLBACK_URL="https://inhso.ir/"
+        VITE_PROJECT_VERSION="${CI_COMMIT_SHORT_SHA:-1.0.0}"
+        ;;
+      ZONE37)
+        VITE_API_URL="https://inhsoeval.ir/api"
+        VITE_BEHDASHT_CALLBACK_URL="https://inhsoeval.ir/"
+        VITE_PROJECT_VERSION="${CI_COMMIT_SHORT_SHA:-0.0.0-dev}"
+        ;;
+    esac
+
+    # ---- load per-zone credentials/info from env ----
+    NEXUS_VAR="${ZONE}_NEXUS"
+    GITEA_VAR="${ZONE}_GITEA_INFORMATION"
+    GITEA_TOKEN_VAR="${ZONE}_GITEA_TOKEN"
+
+    if [[ -z "${!NEXUS_VAR:-}" ]]; then
+      echo "❌ ERROR: Missing ${NEXUS_VAR} env (format: user|pass|registry|real_registry)." >&2
+      exit 3
+    fi
+    if [[ -z "${!GITEA_VAR:-}" ]]; then
+      echo "❌ ERROR: Missing ${GITEA_VAR} env (format: url|username|stack)." >&2
+      exit 4
+    fi
+    if [[ -z "${!GITEA_TOKEN_VAR:-}" ]]; then
+      echo "❌ ERROR: Missing ${GITEA_TOKEN_VAR} env (format: string)." >&2
+      exit 5
+    fi
+
+    IFS='|' read -r REGISTRY_USER REGISTRY_PASS REGISTRY_URL REAL_URL <<< "${!NEXUS_VAR}"
+    IFS='|' read -r ZONE_GITEA_URL ZONE_GITEA_USERNAME ZONE_GITEA_STACK <<< "${!GITEA_VAR}"
+    ZONE_GITEA_TOKEN="${!GITEA_TOKEN_VAR}"
+
+    echo "🔑 Logging into ${ZONE} registry -> ${REGISTRY_URL}"
+    echo "$REGISTRY_PASS" | docker login -u "$REGISTRY_USER" --password-stdin "$REGISTRY_URL"
+
+    # ---- required inputs ----
+    : "${PROJECT:?PROJECT required}"
+    : "${SERVICE:?SERVICE required}"
+    : "${CI_COMMIT_SHORT_SHA:?CI_COMMIT_SHORT_SHA required}"
+
+    # ---- exports ----
+    export IMAGE="${REGISTRY_URL}/${PROJECT}/${SERVICE}:${CI_COMMIT_SHORT_SHA}"
+    export REAL_IMAGE="${REAL_URL}/${PROJECT}/${SERVICE}:${CI_COMMIT_SHORT_SHA}"
+    export STACK
+    export ZONE_GITEA_URL ZONE_GITEA_USERNAME ZONE_GITEA_STACK ZONE_GITEA_TOKEN
+    export VITE_API_URL VITE_BEHDASHT_CALLBACK_URL VITE_PROJECT_VERSION
+
+    # ---- final status log ----
+    echo ""
+    echo "✅ Build setup complete"
+    echo "----------------------------------------"
+    echo " Branch:                      ${CI_COMMIT_BRANCH}"
+    echo " Zone:                        ${ZONE}"
+    echo " Docker Registry:             ${REGISTRY_URL}"
+    echo " Real Registry:               ${REAL_URL}"
+    echo " Image:                       ${IMAGE}"
+    echo " Real Image:                  ${REAL_IMAGE}"
+    echo " Gitea URL:                   ${ZONE_GITEA_URL}"
+    echo " Gitea User:                  ${ZONE_GITEA_USERNAME}"
+    echo " Stack:                       ${STACK}"
+    echo " VITE_API_URL:                ${VITE_API_URL}"
+    echo " VITE_BEHDASHT_CALLBACK_URL:  ${VITE_BEHDASHT_CALLBACK_URL}"
+    echo " VITE_PROJECT_VERSION:        ${VITE_PROJECT_VERSION}"
+    echo "----------------------------------------"
+
+ci-stage:
+  stage: ci-stage
+  tags: [pic-runner]
+  script:
+    - chmod +x ./devops/ci.sh
+    - ./devops/ci.sh
+  only:
+    - dev
+
+cd-stage:
+  stage: cd-stage
+  tags: [pic-runner]
+  script:
+    - chmod +x ./devops/cd.sh
+    - ./devops/cd.sh
+  only:
+    - dev
+
+ci-prod:
+  stage: ci-prod
+  tags: [pic-runner]
+  script:
+    - chmod +x ./devops/ci.sh
+    - ./devops/ci.sh
+  only:
+    - main
+
+cd-prod:
+  stage: cd-prod
+  tags: [pic-runner]
+  script:
+    - chmod +x ./devops/cd.sh
+    - ./devops/cd.sh
+  only:
+    - main

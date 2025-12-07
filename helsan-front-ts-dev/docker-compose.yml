@@ -1,0 +1,9 @@
+services:
+  dev-proxy:
+    image: docker.arvancloud.ir/nginx:stable-alpine
+    volumes:
+      - ./dev-nginx/default.conf:/etc/nginx/nginx.conf:ro
+      - ./dev-nginx/dev.local.crt:/etc/nginx/certs/dev.local.crt:ro
+      - ./dev-nginx/dev.local.key:/etc/nginx/certs/dev.local.key:ro
+    ports:
+      - "443:443"

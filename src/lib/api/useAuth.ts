@@ -1,7 +1,7 @@
 // src/hooks/api/useAuth.ts
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiService } from '@/lib/api/apiService';
 import { removeTokens } from '@/lib/auth/tokenStorage';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 
 export const useLogin = () => {
@@ -24,7 +24,7 @@ export const useRegister = () => {
 
 export const useVerifyLogin = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: apiService.verifyLogin,
     onSuccess: (data) => {
@@ -41,7 +41,7 @@ export const useVerifyLogin = () => {
 
 export const useVerifyRegister = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: apiService.verifyRegister,
     onSuccess: (data) => {
@@ -64,10 +64,24 @@ export const useCheckAuthorize = () => {
   });
 };
 
+// Define user profile type
+interface UserProfile {
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  nationalId?: string;
+  email?: string;
+  [key: string]: any;
+}
+
 export const useUserProfile = (enabled = true) => {
-  return useQuery({
+  return useQuery<UserProfile>({
     queryKey: ['userProfile'],
-    queryFn: apiService.getUserProfile,
+    queryFn: async () => {
+      const response = await apiService.getUserProfile() as any;
+      // Extract data from nested response structure
+      return (response?.data || response || {}) as UserProfile;
+    },
     enabled,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -75,7 +89,7 @@ export const useUserProfile = (enabled = true) => {
 
 export const useLogout = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: apiService.logout,
     onSuccess: async () => {

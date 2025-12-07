@@ -1,10 +1,10 @@
-import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useTranslation } from 'react-i18next';
-import { router } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/styles/theme';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface BackHeaderProps {
   title?: string;
@@ -30,7 +30,14 @@ const BackHeader: React.FC<BackHeaderProps> = ({
   };
 
   return (
-    <View className={`border-b ${isDark ? 'bg-card-dark border-border-dark' : 'bg-white border-gray-200'}`} style={{ paddingTop: insets.top + 8 }}>
+    <View
+      style={{
+        paddingTop: insets.top + 8,
+        backgroundColor: isDark ? colors.card : '#ffffff',
+        borderBottomWidth: 1,
+        borderBottomColor: isDark ? colors.border : '#e5e5e5',
+      }}
+    >
       <View className="flex-row items-center justify-between px-4 py-3 min-h-[56px]">
         <View className="flex-1">
           {showBackButton && (
@@ -40,7 +47,13 @@ const BackHeader: React.FC<BackHeaderProps> = ({
                 size={24}
                 color={isDark ? colors.text : '#000000'}
               />
-              <Text className={`text-base ml-1 mr-1 ${isDark ? 'text-white' : 'text-black'}`}>
+              <Text style={{
+                fontSize: 16,
+                marginLeft: 4,
+                marginRight: 4,
+                fontFamily: 'IRANSans',
+                color: isDark ? colors.text : '#000000'
+              }}>
                 {t('return')}
               </Text>
             </TouchableOpacity>
@@ -49,7 +62,15 @@ const BackHeader: React.FC<BackHeaderProps> = ({
 
         <View className="flex-[2] items-center justify-center">
           {title && (
-            <Text className={`text-lg font-bold text-center ${isDark ? 'text-white' : 'text-black'}`} numberOfLines={1}>
+            <Text
+              style={{
+                fontSize: 18,
+                fontFamily: 'IRANSans-Bold',
+                textAlign: 'center',
+                color: isDark ? colors.text : '#000000'
+              }}
+              numberOfLines={1}
+            >
               {title}
             </Text>
           )}

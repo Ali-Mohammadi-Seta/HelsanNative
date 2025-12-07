@@ -1,0 +1,9 @@
+.vscode
+node_modules
+build
+.dockerignore
+Dockerfile
+Dockerfile.prod
+version
+devops/
+./devops

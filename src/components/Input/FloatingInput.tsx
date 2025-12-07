@@ -1,26 +1,26 @@
 // src/components/Input/FloatingInput.tsx
-import React, { useState, useRef, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Animated,
-  StyleSheet,
-  TextInputProps,
-  ViewStyle,
-  TextStyle,
-} from 'react-native';
 import { useTheme } from '@/styles/theme';
 import { Ionicons } from '@expo/vector-icons';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  Animated,
+  StyleSheet,
+  Text,
+  TextInput,
+  TextInputProps,
+  TextStyle,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from 'react-native';
 
 // Utility to convert Persian/Arabic digits to English
 const toEnglishDigits = (str: string): string => {
   const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
   const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
-  
+
   return str.replace(/[۰-۹]/g, (w) => persianNumbers.indexOf(w).toString())
-            .replace(/[٠-٩]/g, (w) => arabicNumbers.indexOf(w).toString());
+    .replace(/[٠-٩]/g, (w) => arabicNumbers.indexOf(w).toString());
 };
 
 // Price formatter
@@ -71,7 +71,7 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [displayValue, setDisplayValue] = useState('');
-  
+
   const labelAnimation = useRef(new Animated.Value(value ? 1 : 0)).current;
 
   useEffect(() => {
@@ -102,7 +102,7 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
     }
 
     if (type === 'number' && !/^\d*$/.test(convertedValue)) return;
-    
+
     setDisplayValue(convertedValue);
     onChangeText?.(convertedValue);
   };
@@ -120,10 +120,10 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
   const borderColor = error
     ? colors.error
     : isFocused
-    ? colors.primary
-    : isDark
-    ? colors.border
-    : '#e0e0e0';
+      ? colors.primary
+      : isDark
+        ? colors.border
+        : '#e0e0e0';
 
   return (
     <View style={[styles.container, containerStyle]}>
@@ -137,8 +137,8 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
                 ? '#1a1a1a'
                 : '#f5f5f5'
               : isDark
-              ? colors.card
-              : colors.background,
+                ? colors.card
+                : colors.background,
             minHeight: multiline ? 80 : 48,
           },
         ]}
@@ -161,6 +161,7 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
             {
               color: isDark ? colors.text : '#000000',
               textAlign: dir === 'rtl' ? 'right' : 'left',
+              writingDirection: dir,
               paddingTop: floatingLabel && (isFocused || value) ? 20 : 12,
               fontFamily: 'IRANSans',
             },
@@ -181,10 +182,10 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
                 color: error
                   ? colors.error
                   : isFocused
-                  ? colors.primary
-                  : isDark
-                  ? '#888888'
-                  : '#666666',
+                    ? colors.primary
+                    : isDark
+                      ? '#888888'
+                      : '#666666',
                 backgroundColor: isDark ? colors.card : colors.background,
                 right: dir === 'rtl' ? 12 : undefined,
                 left: dir === 'ltr' ? 12 : undefined,
