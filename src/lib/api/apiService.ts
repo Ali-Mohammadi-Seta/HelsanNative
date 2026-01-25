@@ -82,8 +82,16 @@ export const getDoctorsListApi = async (filters: {
   return extractData(response);
 };
 
-
-
+// Map
+export const getNearbyPlacesApi = async (payload: {
+  topLeftLat: number;
+  topLeftLng: number;
+  bottomRightLat: number;
+  bottomRightLng: number;
+}) => {
+  const response = await apiClient.get(endpoints.getPlaceListOnMove1, { params: payload });
+  return extractData(response);
+};
 
 // Export all with proper aliases for useAuth.ts compatibility
 export const apiService = {
@@ -105,6 +113,8 @@ export const apiService = {
   getEmrServices: getEmrServicesApi,
   // Doctors
   getDoctorsList: getDoctorsListApi,
+  // Map
+  getNearbyPlaces: getNearbyPlacesApi,
   // Also export with Api suffix for backward compatibility
   loginApi,
   registerApi,

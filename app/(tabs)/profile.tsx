@@ -75,7 +75,7 @@ export default function ProfileScreen() {
   // Get display name
   const firstName = userProfile?.firstName || '';
   const lastName = userProfile?.lastName || '';
-  const displayName = firstName && lastName ? `${firstName} ${lastName}` : (userProfile?.phone || t('user') || 'کاربر');
+  const displayName = firstName && lastName ? `${firstName} ${lastName}` : (userProfile?.phone || t('user.user') || 'کاربر');
 
   // If logged in, show profile options
   return (

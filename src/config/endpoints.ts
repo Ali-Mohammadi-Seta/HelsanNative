@@ -30,6 +30,8 @@ const endpoints = {
 
   // Location
   getPlaceListOnMove: '/location',
+  getPlaceListOnMove1: '/location', // Using same endpoint for now as placeholder or if it's the same
+
 } as const;
 
 export default endpoints;

@@ -16,7 +16,7 @@ export default function ExploreScreen() {
       <View style={[styles.container, { backgroundColor: isDark ? colors.background : '#ffffff' }]}>
         <View style={styles.content}>
           <Text style={[styles.subtitle, { color: isDark ? colors.textSecondary : '#666666' }]}>
-            Search functionality coming soon!
+            به زودی !!!
           </Text>
         </View>
       </View>

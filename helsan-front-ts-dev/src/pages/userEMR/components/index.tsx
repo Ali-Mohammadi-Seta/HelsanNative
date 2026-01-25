@@ -1,1 +1,0 @@
-export { MyHealthinfo } from "./MyHealthinfo";

@@ -1,18 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-  Dimensions,
-} from 'react-native';
-import { useTranslation } from 'react-i18next';
-import Toast from 'react-native-toast-message';
-import { Button } from '@/components';
-import { useTheme } from '@/styles/theme';
+import Button from '@/components/Button';
 import { useGetQuestionnaireCachedInfo } from '@/lib/hooks/emr/useGetQuestionnaireCachedInfo';
 import { useSaveDoneQuestionnaire } from '@/lib/hooks/emr/useSaveDoneQuestionnaire';
+import { useTheme } from '@/styles/theme';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import {
+  Dimensions,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
+import Toast from 'react-native-toast-message';
 
 interface QuestionOption {
   id: number;
@@ -80,7 +79,7 @@ const Questionnaire: React.FC = () => {
 
   useEffect(() => {
     if (cachedInfo) {
-      setAnswers(cachedInfo);
+      setAnswers(cachedInfo as Answers);
     }
   }, [cachedInfo]);
 
@@ -123,7 +122,7 @@ const Questionnaire: React.FC = () => {
                 text1: t('success'),
                 text2: t('sentQuess'),
               });
-              setAnswers({});
+              setAnswers({} as Answers);
               setCurrentStep(0);
               setStartStep(true);
             }
@@ -195,13 +194,12 @@ const Questionnaire: React.FC = () => {
               className="flex-1"
             >
               <View
-                className={`h-2 rounded-full ${
-                  isQuestionAnswered(qu.id)
-                    ? 'bg-primary'
-                    : currentStep === index
+                className={`h-2 rounded-full ${isQuestionAnswered(qu.id)
+                  ? 'bg-primary'
+                  : currentStep === index
                     ? 'bg-info'
                     : 'bg-divider'
-                }`}
+                  }`}
               />
             </TouchableOpacity>
           ))}
@@ -222,35 +220,31 @@ const Questionnaire: React.FC = () => {
           >
             <View className="flex-row items-center">
               <View
-                className={`w-10 h-10 rounded-lg justify-center items-center mr-3 ${
-                  isOptionSelected(currentQuestion.id, option.value)
-                    ? 'bg-primary'
-                    : 'bg-card border border-border'
-                }`}
+                className={`w-10 h-10 rounded-lg justify-center items-center mr-3 ${isOptionSelected(currentQuestion.id, option.value)
+                  ? 'bg-primary'
+                  : 'bg-card border border-border'
+                  }`}
               >
                 <Text
-                  className={`font-medium ${
-                    isOptionSelected(currentQuestion.id, option.value)
-                      ? 'text-white'
-                      : 'text-foreground'
-                  }`}
+                  className={`font-medium ${isOptionSelected(currentQuestion.id, option.value)
+                    ? 'text-white'
+                    : 'text-foreground'
+                    }`}
                 >
                   {option.id}
                 </Text>
               </View>
               <View
-                className={`flex-1 p-4 rounded-lg ${
-                  isOptionSelected(currentQuestion.id, option.value)
-                    ? 'bg-primary'
-                    : 'bg-card border border-border'
-                }`}
+                className={`flex-1 p-4 rounded-lg ${isOptionSelected(currentQuestion.id, option.value)
+                  ? 'bg-primary'
+                  : 'bg-card border border-border'
+                  }`}
               >
                 <Text
-                  className={`${
-                    isOptionSelected(currentQuestion.id, option.value)
-                      ? 'text-white'
-                      : 'text-foreground'
-                  }`}
+                  className={`${isOptionSelected(currentQuestion.id, option.value)
+                    ? 'text-white'
+                    : 'text-foreground'
+                    }`}
                 >
                   {option.title}
                 </Text>

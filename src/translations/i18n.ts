@@ -1,11 +1,10 @@
 // src/translations/i18n.ts
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import { getLocales } from 'expo-localization';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import fa from './fa.json';
 import en from './en.json';
+import fa from './fa.json';
 
 const LANGUAGE_STORAGE_KEY = '@app_language';
 
@@ -31,11 +30,23 @@ i18n.use(initReactI18next).init({
 });
 
 // Load saved language asynchronously (user preference takes priority)
-AsyncStorage.getItem(LANGUAGE_STORAGE_KEY).then((savedLanguage) => {
-  if (savedLanguage && (savedLanguage === 'fa' || savedLanguage === 'en')) {
-    i18n.changeLanguage(savedLanguage);
-  }
-});
+// Only run in React Native environment (not during SSR/bundling)
+if (typeof window !== 'undefined' || typeof global !== 'undefined') {
+  // Defer AsyncStorage call to avoid issues during module initialization
+  const loadSavedLanguage = async () => {
+    try {
+      const savedLanguage = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
+      if (savedLanguage && (savedLanguage === 'fa' || savedLanguage === 'en')) {
+        i18n.changeLanguage(savedLanguage);
+      }
+    } catch (error) {
+      // Silently fail if AsyncStorage is not available
+      console.log('Could not load saved language:', error);
+    }
+  };
+  // Use setImmediate or setTimeout to defer the call
+  setTimeout(loadSavedLanguage, 0);
+}
 
 export const changeLanguage = async (lang: string) => {
   await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, lang);

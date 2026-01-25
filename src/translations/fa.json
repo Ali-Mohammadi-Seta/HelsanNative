@@ -34,10 +34,6 @@
   "public": {
     "overview": "معرفی سامانه"
   },
-  "user": {
-    "password": "رمز عبور",
-    "login": "ورود"
-  },
   "insurances": {
     "salamatinsurances": "بیمه سلامت",
     "sakhadinsurances": "بیمه خدمات درمانی نیروهای مسلح",
@@ -474,5 +470,10 @@
   "comingSoon": "به زودی...",
   "explore": "کاوش",
   "success": "موفق",
-  "user": "کاربر"
+  "user": {
+    "user": "کاربر",
+    "password": "رمز عبور",
+    "login": "ورود"
+  },
+  "forgotPassword":"رمز عبور خود را فراموش کردید؟"
 }

@@ -1,24 +1,24 @@
 // src/components/Button/index.tsx
+import { useTheme } from '@/styles/theme';
 import React, { ReactNode } from 'react';
 import {
-  TouchableOpacity,
-  Text,
-  View,
   ActivityIndicator,
-  StyleSheet,
-  ViewStyle,
+  Text,
   TextStyle,
+  TouchableOpacity,
   TouchableOpacityProps,
+  View,
+  ViewStyle
 } from 'react-native';
-import { useTheme } from '@/styles/theme';
 
 type BtnType = 'primary' | 'secondary' | 'danger';
-type BtnVariant = 'solid' | 'text' | 'link';
+type BtnVariant = 'solid' | 'text' | 'link' | 'outline' | 'primary';
 type BtnSize = 'large' | 'default' | 'small';
 type IconPosition = 'left' | 'right';
 
 interface CustomButtonProps extends Omit<TouchableOpacityProps, 'style'> {
   children?: ReactNode;
+  title?: string; // For backward compatibility
   type?: BtnType;
   variant?: BtnVariant;
   size?: BtnSize;
@@ -34,6 +34,7 @@ interface CustomButtonProps extends Omit<TouchableOpacityProps, 'style'> {
 
 const CustomButton: React.FC<CustomButtonProps> = ({
   children,
+  title,
   type = 'primary',
   variant = 'solid',
   size = 'default',
@@ -60,9 +61,12 @@ const CustomButton: React.FC<CustomButtonProps> = ({
 
   const currentSize = sizeConfig[size];
 
+  // Normalize variant: 'primary' means 'solid', 'outline' is outline style
+  const normalizedVariant = variant === 'primary' ? 'solid' : variant;
+
   // Color configurations
   const getColors = () => {
-    if (variant === 'solid') {
+    if (normalizedVariant === 'solid') {
       switch (type) {
         case 'primary':
           return {
@@ -80,6 +84,15 @@ const CustomButton: React.FC<CustomButtonProps> = ({
             text: '#ffffff',
           };
       }
+    }
+
+    // Outline variant
+    if (normalizedVariant === 'outline') {
+      return {
+        bg: 'transparent',
+        text: isDark ? colors.primary : '#16a34a',
+        border: isDark ? colors.primary : '#16a34a',
+      };
     }
 
     // Text/Link variants
@@ -104,9 +117,13 @@ const CustomButton: React.FC<CustomButtonProps> = ({
     alignItems: 'center',
     justifyContent: 'center',
     gap: currentSize.gap,
-    backgroundColor: variant === 'solid' ? colorScheme.bg : 'transparent',
+    backgroundColor: normalizedVariant === 'solid' ? colorScheme.bg : 'transparent',
     opacity: isDisabled ? 0.6 : 1,
     ...(fullWidth && { width: '100%' }),
+    ...(normalizedVariant === 'outline' && {
+      borderWidth: 1,
+      borderColor: (colorScheme as any).border || colorScheme.text,
+    }),
   };
 
   const textStyleComputed: TextStyle = {
@@ -135,9 +152,9 @@ const CustomButton: React.FC<CustomButtonProps> = ({
 
       {icon && !loading && <View>{icon}</View>}
 
-      {children && (
+      {(children || title) && (
         <Text style={[textStyleComputed, textStyle]}>
-          {children}
+          {children || title}
         </Text>
       )}
     </TouchableOpacity>
