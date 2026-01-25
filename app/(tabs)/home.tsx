@@ -132,7 +132,7 @@ export default function HomeScreen() {
           >
             <StyledView className={`flex-row items-center ${isRTL ? 'flex-row-reverse' : ''}`}>
               <StyledImage
-                source={require('@/assets/images/3333.png')}
+                source={require('@/assets/images/3333.jpg')}
                 className="w-[100px] h-[100px]"
                 resizeMode="contain"
               />
