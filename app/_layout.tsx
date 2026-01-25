@@ -1,13 +1,18 @@
-import React from 'react';
-import { Slot } from 'expo-router';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import Toast from 'react-native-toast-message';
 import AppProviders from '@/providers/AppProviders';
 import '@/styles/global.css';
-import { StatusBar } from 'expo-status-bar';
-import { View } from 'react-native';
 import { useTheme } from '@/styles/theme';
+import { Slot } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import React from 'react';
+import { I18nManager, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 
+// Force RTL for Persian language
+if (!I18nManager.isRTL) {
+  I18nManager.allowRTL(true);
+  I18nManager.forceRTL(true);
+}
 export default function RootLayout() {
   return (
     <AppProviders>
