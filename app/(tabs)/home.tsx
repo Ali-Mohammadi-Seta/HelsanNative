@@ -1,207 +1,361 @@
-// app/(tabs)/home.tsx
 import { Button, CategoryCard, Header } from '@/components';
+import { useDirection } from '@/lib/hooks/useDirection';
 import { useTheme } from '@/styles/theme';
 import { LinearGradient } from 'expo-linear-gradient';
-import { styled } from "nativewind";
+import { router } from 'expo-router';
 import React from 'react';
+import { Image, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { Dimensions, Image, ScrollView, Text, View } from 'react-native';
 
-// Create styled components for NativeWind compatibility
-const StyledView = styled(View);
-const StyledText = styled(Text);
-const StyledScrollView = styled(ScrollView);
-const StyledImage = styled(Image);
-const StyledLinearGradient = styled(LinearGradient);
-const StyledButton = styled(Button); // Assuming Button is a custom component that accepts a `className` prop
+type Category = {
+  key: string;
+  title: string;
+  icon: any;
+  url?: string;
+  gradientColors: [string, string, ...string[]];
+};
 
-const { width } = Dimensions.get('window');
+const chunk = <T,>(items: T[], size: number) => {
+  const rows: T[][] = [];
+  for (let i = 0; i < items.length; i += size) rows.push(items.slice(i, i + size));
+  return rows;
+};
 
 export default function HomeScreen() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const direction = useDirection();
+  const { width } = useWindowDimensions();
+  const contentPadding = width < 380 ? 14 : 16;
+  const cardGap = width < 380 ? 8 : 12;
+  const cardSize = Math.floor((width - contentPadding * 2 - cardGap * 2) / 3);
+  const bannerImageSize = width < 380 ? 86 : 104;
+  const shopImageWidth = width < 380 ? 100 : 130;
 
-  const isRTL = i18n.language !== 'fa';
+  const openConsultation = () => router.push('/doctors-consultation');
 
-  const categories: Array<{
-    key: string;
-    title: string;
-    icon: any;
-    url?: string;
-    gradientColors: [string, string, ...string[]];
-  }> = [
-      { key: 'places', title: t('header.places'), icon: require('@/assets/images/clinic.gif'), url: '/medical-centers', gradientColors: ['#ff512f', '#dd2476'], },
-      { key: 'drugstore', title: t('drugstore'), icon: require('@/assets/images/drugs.gif'), url: '/pharmacies', gradientColors: ['#6a5acd', '#c54b8c', '#b284be'], },
-      { key: 'paraclinic', title: t('paraclinic'), icon: require('@/assets/images/paraclinic.gif'), url: '/paraclinic', gradientColors: ['#cd5700', '#fd9600', '#bfdd50'], },
-      { key: 'healthcareCompanies', title: t('healthcareCompanies'), icon: require('@/assets/images/healthcareCompanies.gif'), url: '/healthcare-companies', gradientColors: ['#000080', '#00bfff'], },
-      { key: 'doctorsAndCounselingPsychologist', title: t('doctorsAndCounselingPsychologist'), icon: require('@/assets/images/doctorsAndCounselingPsychologist.gif'), url: '/doctors-consultation', gradientColors: ['#228b22', '#32cd32'], },
-      { key: 'taghziye', title: t('taghziye'), icon: require('@/assets/images/taghziye.gif'), url: '/nutrition', gradientColors: ['#4169ff', '#89cff0'], },
-      { key: 'healthRoom', title: t('healthRoom'), icon: require('@/assets/images/tea.gif'), url: '/health-room', gradientColors: ['#09610a', '#67f588'], },
-      { key: 'insurance', title: t('insurance'), icon: require('@/assets/images/insurance.gif'), url: '/insurances', gradientColors: ['#e056fd', '#000000'], },
-      { key: 'healthTourism', title: t('healthTourism'), icon: require('@/assets/images/healthTourism.gif'), url: '/health-tourism', gradientColors: ['#4169ff', '#89cff0'], },
-      { key: 'exercise', title: t('exercise'), icon: require('@/assets/images/running.gif'), url: '/exercise', gradientColors: ['#ff6677', '#f48e5f', '#ff5047'], },
-      { key: 'transportation', title: t('transportation'), icon: require('@/assets/images/ambulance.gif'), url: '/transportation', gradientColors: ['#e34234', '#ff3800'], },
-      { key: 'homeNursingCare', title: t('homeNursingCare'), icon: require('@/assets/images/homeNursingCare.gif'), url: '/home-nursing', gradientColors: ['#3bb78f', '#0bab64'], },
-      { key: 'locator', title: t('locator'), icon: require('@/assets/images/mapLocator.gif'), url: '/(tabs)/map', gradientColors: ['#f7971e', '#ffd200'], },
-      { key: 'creditPayment', title: t('creditPayment'), icon: require('@/assets/images/creditPayment.gif'), url: '/credit-payment', gradientColors: ['#63d471', '#233329'], },
-      { key: 'shops', title: t('shops'), icon: require('@/assets/images/shop.gif'), url: '/shops', gradientColors: ['#cd1c18', '#66023c'], },
-      { key: 'volunteeringCampaign', title: t('volunteeringCampaign'), icon: require('@/assets/images/volunteeringCampaign.gif'), url: '/volunteering', gradientColors: ['#F6C324', '#F17E7E'], },
-      { key: 'education', title: t('education'), icon: require('@/assets/images/education.gif'), url: '/education', gradientColors: ['#8CA6DB', '#B993D6'], },
-      { key: 'awareness', title: t('awareness'), icon: require('@/assets/images/awareness.gif'), url: '/awareness', gradientColors: ['#f83600', '#fe8c00'], },
-    ];
+  const categories: Category[] = [
+    {
+      key: 'places',
+      title: t('header.places'),
+      icon: require('@/assets/images/clinic.gif'),
+      url: '/medical-centers',
+      gradientColors: ['#ff512f', '#dd2476'],
+    },
+    {
+      key: 'drugstore',
+      title: t('drugstore'),
+      icon: require('@/assets/images/drugs.gif'),
+      url: '/pharmacies',
+      gradientColors: ['#6a5acd', '#c54b8c', '#b284be'],
+    },
+    {
+      key: 'healthcareCompanies',
+      title: t('healthcareCompanies'),
+      icon: require('@/assets/images/healthcareCompanies.gif'),
+      url: '/healthcare-companies',
+      gradientColors: ['#000080', '#00bfff'],
+    },
+    {
+      key: 'doctorsDirectory',
+      title: t('doctors'),
+      icon: require('@/assets/images/doctordir.gif'),
+      url: '/doctors',
+      gradientColors: ['#0ea5e9', '#14b8a6'],
+    },
+    {
+      key: 'psychologistsDirectory',
+      title: t('psychologists'),
+      icon: require('@/assets/images/consultdir.gif'),
+      url: '/psychologists',
+      gradientColors: ['#7c3aed', '#ec4899'],
+    },
+    {
+      key: 'healthMonitoring',
+      title: t('healthMonitoring', { defaultValue: 'Health monitoring' }),
+      icon: require('@/assets/images/volunteeringCampaign.gif'),
+      url: '/health-monitoring',
+      gradientColors: ['#F6C324', '#F17E7E'],
+    },
+    {
+      key: 'taghziye',
+      title: t('taghziye'),
+      icon: require('@/assets/images/taghziye.gif'),
+      url: '/nutrition',
+      gradientColors: ['#4169ff', '#89cff0'],
+    },
+    {
+      key: 'healthRoom',
+      title: t('healthRoom'),
+      icon: require('@/assets/images/tea.gif'),
+      url: '/health-room',
+      gradientColors: ['#09610a', '#67f588'],
+    },
+    {
+      key: 'paraclinic',
+      title: t('paraclinic'),
+      icon: require('@/assets/images/paraclinic.gif'),
+      url: '/paraclinic',
+      gradientColors: ['#cd5700', '#fd9600', '#bfdd50'],
+    },
+    {
+      key: 'insurance',
+      title: t('insurance'),
+      icon: require('@/assets/images/insurance.gif'),
+      url: '/insurances',
+      gradientColors: ['#e056fd', '#000000'],
+    },
+    {
+      key: 'healthTourism',
+      title: t('healthTourism'),
+      icon: require('@/assets/images/healthTourism.gif'),
+      url: '/health-tourism',
+      gradientColors: ['#4169ff', '#89cff0'],
+    },
+    {
+      key: 'exercise',
+      title: t('exercise'),
+      icon: require('@/assets/images/running.gif'),
+      url: '/exercise',
+      gradientColors: ['#ff6677', '#f48e5f', '#ff5047'],
+    },
+    {
+      key: 'transportation',
+      title: t('transportation'),
+      icon: require('@/assets/images/ambulance.gif'),
+      url: '/transportation',
+      gradientColors: ['#e34234', '#ff3800'],
+    },
+    {
+      key: 'homeNursingCare',
+      title: t('homeNursingCare'),
+      icon: require('@/assets/images/homeNursingCare.gif'),
+      url: '/home-nursing',
+      gradientColors: ['#3bb78f', '#0bab64'],
+    },
+    {
+      key: 'locator',
+      title: t('locator'),
+      icon: require('@/assets/images/mapLocator.gif'),
+      url: '/(tabs)/map',
+      gradientColors: ['#f7971e', '#ffd200'],
+    },
+    {
+      key: 'creditPayment',
+      title: t('creditPayment'),
+      icon: require('@/assets/images/creditPayment.gif'),
+      url: '/credit-payment',
+      gradientColors: ['#63d471', '#233329'],
+    },
+    {
+      key: 'shops',
+      title: t('shops'),
+      icon: require('@/assets/images/shop.gif'),
+      url: '/shops',
+      gradientColors: ['#cd1c18', '#66023c'],
+    },
+    {
+      key: 'volunteeringCampaign',
+      title: t('volunteeringCampaign'),
+      icon: require('@/assets/images/volunteeringCampaign.gif'),
+      url: '/volunteering',
+      gradientColors: ['#F6C324', '#F17E7E'],
+    },
+    {
+      key: 'education',
+      title: t('education'),
+      icon: require('@/assets/images/education.gif'),
+      url: '/education',
+      gradientColors: ['#8CA6DB', '#B993D6'],
+    },
+    {
+      key: 'awareness',
+      title: t('awareness'),
+      icon: require('@/assets/images/awareness.gif'),
+      url: '/awareness',
+      gradientColors: ['#f83600', '#fe8c00'],
+    },
+  ];
 
-  const firstRowCategories = categories.slice(0, 7);
-  const secondRowCategories = categories.slice(7, 14);
-  const thirdRowCategories = categories.slice(14);
-
-  // Render 3 items per row
-  const renderCategoryRows = (cats: typeof categories) => {
-    const rows = [];
-    for (let i = 0; i < cats.length; i += 3) {
-      const rowItems = cats.slice(i, i + 3);
-      rows.push(
-        <StyledView key={i} className={`mb-1 flex-row justify-start ${isRTL ? 'flex-row-reverse' : ''}`}>
-          {rowItems.map((category) => (
+  const renderCategoryGrid = (items: Category[]) => (
+    <View className="my-2">
+      {chunk(items, 3).map((row, rowIndex) => (
+        <View
+          key={rowIndex}
+          style={[
+            direction.row,
+            {
+              justifyContent: row.length === 3 ? 'space-between' : 'flex-start',
+              columnGap: cardGap,
+              marginBottom: 2,
+            },
+          ]}
+        >
+          {row.map((category) => (
             <CategoryCard
               key={category.key}
               title={category.title}
               icon={category.icon}
               url={category.url}
               gradientColors={category.gradientColors}
+              size={cardSize}
             />
           ))}
-        </StyledView>
-      );
-    }
-    return rows;
-  };
+        </View>
+      ))}
+    </View>
+  );
+
+  const firstRowCategories = categories.slice(0, 8);
+  const secondRowCategories = categories.slice(8, 14);
+  const thirdRowCategories = categories.slice(14);
 
   return (
-    <StyledView className="flex-1">
+    <View className="flex-1">
       <Header />
 
-      <StyledScrollView
+      <ScrollView
         className="flex-1"
         style={{ backgroundColor: colors.background }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Wrapper replaces contentContainerClassName */}
-        <StyledView className="p-4 pb-8">
-          {/* Consultation Banner */}
-          <StyledLinearGradient
-            colors={isDark ? ['#4a2c2c', '#5c3a3a'] : ['#fee2e2', '#fecaca']}
-            className="rounded-2xl p-5 mb-5 shadow-lg shadow-black/10"
+        <View style={{ paddingHorizontal: contentPadding, paddingTop: 16, paddingBottom: 28 }}>
+          <LinearGradient
+            colors={isDark ? ['#4a2c2c', '#5c3a3a'] : ['#fff1f2', '#fecaca']}
+            className="rounded-2xl p-5 mb-5 shadow-lg shadow-black/10 overflow-hidden"
           >
-            <StyledView className={`flex-row items-center ${isRTL ? 'flex-row-reverse' : ''}`}>
-              <StyledView className={`flex-1 pr-4 ${isRTL ? 'items-end' : ''}`}>
-                <StyledText
-                  className={`text-lg mb-2 ${isRTL ? 'text-right' : ''}`}
-                  style={{ fontFamily: 'IRANSans-Bold', color: isDark ? '#fecaca' : '#1f2937' }}
+            <View className="items-center" style={direction.row}>
+              <View
+                className="flex-1"
+                style={[
+                  direction.startItems,
+                  direction.isRTL ? { paddingLeft: 12 } : { paddingRight: 12 },
+                ]}
+              >
+                <Text
+                  className="text-lg mb-2"
+                  style={{
+                    fontFamily: 'IRANSans-Bold',
+                    color: isDark ? '#fecaca' : '#1f2937',
+                    ...direction.text,
+                  }}
                 >
                   {t('homePage.consultationBannerTitle')}
-                </StyledText>
-                <StyledText
-                  className={`text-sm mb-3 leading-5 ${isRTL ? 'text-right' : ''}`}
-                  style={{ fontFamily: 'IRANSans', color: isDark ? '#fca5a5' : '#4b5563' }}
+                </Text>
+                <Text
+                  className="text-sm mb-3 leading-5"
+                  style={{
+                    fontFamily: 'IRANSans',
+                    color: isDark ? '#fca5a5' : '#4b5563',
+                    ...direction.text,
+                  }}
                 >
                   {t('homePage.consultationBannerDesc')}
-                </StyledText>
-                <StyledButton type="primary" size="small" className={`mt-2 ${isRTL ? 'self-end' : 'self-start'}`}>
+                </Text>
+                <Button type="primary" size="small" onPress={openConsultation}>
                   {t('homePage.consultationBannerButton')}
-                </StyledButton>
-              </StyledView>
-              <StyledImage
+                </Button>
+              </View>
+              <Image
                 source={require('@/assets/images/5 (1).png')}
-                className="w-[100px] h-[100px]"
+                style={{ width: bannerImageSize, height: bannerImageSize }}
                 resizeMode="contain"
               />
-            </StyledView>
-          </StyledLinearGradient>
+            </View>
+          </LinearGradient>
 
-          {/* First Row Categories */}
-          <StyledView className="my-[10px]">
-            {renderCategoryRows(firstRowCategories)}
-          </StyledView>
+          {renderCategoryGrid(firstRowCategories)}
 
-          {/* Main Banner */}
-          <StyledLinearGradient
+          <LinearGradient
             colors={isDark ? ['#3d2a20', '#4a3830', '#3d2a20'] : ['#fecaca', '#ecdccf', '#fecaca']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            className="rounded-2xl p-5 my-5 shadow-lg shadow-black/10 "
+            className="rounded-2xl p-5 my-5 shadow-lg shadow-black/10 overflow-hidden"
           >
-            <StyledView className={`flex-row items-center ${isRTL ? 'flex-row-reverse' : ''}`}>
-              <StyledImage
+            <View className="items-center" style={direction.row}>
+              <Image
                 source={require('@/assets/images/3333.jpg')}
-                className="w-[100px] h-[100px]"
-                resizeMode="contain"
+                style={{ width: bannerImageSize + 4, height: bannerImageSize + 4, borderRadius: 14 }}
+                resizeMode="cover"
               />
-              <StyledView className={`flex-1 px-3 ${isRTL ? 'items-end' : ''}`}>
-                <StyledImage
+              <View className="flex-1 px-3" style={direction.startItems}>
+                <Image
                   source={require('@/assets/images/sepehrsalamat.png')}
                   className="w-10 h-10 mb-2"
                   resizeMode="contain"
                 />
-                <StyledText
-                  className={`text-base mb-2 ${isRTL ? 'text-start' : ''}`}
-                  style={{ fontFamily: 'IRANSans-Bold', color: isDark ? '#fed7aa' : '#7c2d12' }}
+                <Text
+                  className="text-base mb-2"
+                  style={{
+                    fontFamily: 'IRANSans-Bold',
+                    color: isDark ? '#fed7aa' : '#7c2d12',
+                    ...direction.text,
+                  }}
                 >
                   {t('homePage.mainBannerTitle')}
-                </StyledText>
-                <StyledText
-                  className={`text-sm ${isRTL ? 'text-right' : ''}`}
-                  style={{ fontFamily: 'IRANSans', color: isDark ? '#fdba74' : '#7c2d12' }}
+                </Text>
+                <Text
+                  className="text-sm leading-5"
+                  style={{
+                    fontFamily: 'IRANSans',
+                    color: isDark ? '#fdba74' : '#7c2d12',
+                    ...direction.text,
+                  }}
                 >
                   {t('homePage.mainBannerDesc')}
-                </StyledText>
-              </StyledView>
-            </StyledView>
-          </StyledLinearGradient>
+                </Text>
+              </View>
+            </View>
+          </LinearGradient>
 
-          {/* Second Row Categories */}
-          <StyledView className="my-[10px]">
-            {renderCategoryRows(secondRowCategories)}
-          </StyledView>
+          {renderCategoryGrid(secondRowCategories)}
 
-          {/* Shop Banner */}
-          <StyledView
+          <View
             className="rounded-2xl my-5 overflow-hidden shadow-lg shadow-black/10"
             style={{ backgroundColor: isDark ? colors.card : '#ffffff' }}
           >
-            <StyledView className={`flex-row ${isRTL ? 'flex-row-reverse' : ''}`}>
-              <StyledView className={`flex-1 p-5 justify-center ${isRTL ? 'items-end' : ''}`}>
-                <StyledText
-                  className={`text-base mb-2 ${isRTL ? 'text-right' : ''}`}
-                  style={{ fontFamily: 'IRANSans-Bold', color: isDark ? colors.text : '#1f2937' }}
+            <View style={direction.row}>
+              <View className="flex-1 p-5 justify-center" style={direction.startItems}>
+                <Text
+                  className="text-base mb-2"
+                  style={{
+                    fontFamily: 'IRANSans-Bold',
+                    color: isDark ? colors.text : '#1f2937',
+                    ...direction.text,
+                  }}
                 >
                   {t('homePage.shopBannerTitle')}
-                </StyledText>
-                <StyledText
-                  className={`text-sm mb-3 ${isRTL ? 'text-right' : ''}`}
-                  style={{ fontFamily: 'IRANSans', color: isDark ? colors.textSecondary : '#4b5563' }}
+                </Text>
+                <Text
+                  className="text-sm mb-3 leading-5"
+                  style={{
+                    fontFamily: 'IRANSans',
+                    color: isDark ? colors.textSecondary : '#4b5563',
+                    ...direction.text,
+                  }}
                 >
                   {t('homePage.shopBannerDesc')}
-                </StyledText>
-                <StyledButton type="primary" size="small" className="self-start">
+                </Text>
+                <Button type="primary" size="small" onPress={() => router.push('/pharmacies')}>
                   {t('homePage.shopBannerButton')}
-                </StyledButton>
-              </StyledView>
-              <StyledView className="w-[130px] bg-[#149CBF] justify-center items-center p-4">
-                <StyledImage
+                </Button>
+              </View>
+              <View
+                className="bg-[#149CBF] justify-center items-center p-4"
+                style={{ width: shopImageWidth }}
+              >
+                <Image
                   source={require('@/assets/images/3.webp')}
-                  className="w-[90px] h-[90px]"
+                  style={{ width: shopImageWidth - 36, height: shopImageWidth - 36 }}
                   resizeMode="contain"
                 />
-              </StyledView>
-            </StyledView>
-          </StyledView>
+              </View>
+            </View>
+          </View>
 
-          {/* Third Row Categories */}
-          <StyledView className="my-[10px]">
-            {renderCategoryRows(thirdRowCategories)}
-          </StyledView>
-        </StyledView>
-      </StyledScrollView>
-    </StyledView>
+          {renderCategoryGrid(thirdRowCategories)}
+        </View>
+      </ScrollView>
+    </View>
   );
 }

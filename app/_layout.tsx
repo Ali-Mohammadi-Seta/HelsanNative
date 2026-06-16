@@ -8,10 +8,12 @@ import { I18nManager, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
-// Force RTL for Persian language
-if (!I18nManager.isRTL) {
-  I18nManager.allowRTL(true);
-  I18nManager.forceRTL(true);
+// The app supports Persian and English in the same binary. React Native's
+// process-wide RTL switch requires a restart and leaks into the wrong locale,
+// so screens apply direction from i18n instead.
+if (I18nManager.isRTL) {
+  I18nManager.allowRTL(false);
+  I18nManager.forceRTL(false);
 }
 export default function RootLayout() {
   return (

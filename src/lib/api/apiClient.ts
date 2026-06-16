@@ -5,7 +5,7 @@ import config from '@/config';
 
 // --- Configuration ---
 // ✅ Use the nginx proxy on local network
-const BASE_URL = config.apiUrl; // http://192.168.1.69:8080/api
+const BASE_URL = config.apiUrl; // http://192.168.31.169:8080/api
 const REFRESH_TOKEN_ENDPOINT = '/auth/token';
 
 // --- Axios Instance ---

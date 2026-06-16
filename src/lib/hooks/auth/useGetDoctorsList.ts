@@ -7,9 +7,15 @@ export const useGetDoctorsList = (filters: {
   offset: number;
   limit: number;
 }) => {
+  const queryFilters = {
+    LastDegreeField: filters.LastDegreeField,
+    page: filters.offset,
+    limit: filters.limit,
+  };
+
   return useQuery({
     queryKey: ['doctorsList', filters],
-    queryFn: () => getDoctorsListApi(filters),
+    queryFn: () => getDoctorsListApi(queryFilters),
     staleTime: 5 * 60 * 1000,
   });
 };

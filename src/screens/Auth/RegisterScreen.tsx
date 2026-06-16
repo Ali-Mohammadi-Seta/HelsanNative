@@ -1,26 +1,32 @@
-// src/screens/Auth/RegisterScreen.tsx
 import React, { useState } from 'react';
-import { View, Text, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
+import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
-import { router } from 'expo-router';
 import Toast from 'react-native-toast-message';
-import moment from 'moment-jalaali';
-import { FloatingInput, Button, Modal } from '@/components';
+import { Button, FloatingInput, Modal } from '@/components';
 import DatePickerJalali from '@/components/DatePicker/DatePickerJalali';
+import {
+  applyAuthResponse,
+  getSsoRedirectUrl,
+  startHealthMinistryAuth,
+  submitHealthMinistryCode,
+} from '@/lib/auth/sso';
 import { useRegister } from '@/lib/hooks/auth/useRegister';
 import { setUserRegisterFormValues } from '@/redux/slices/userSlice';
+import type { AppDispatch } from '@/redux/store';
 import { useTheme } from '@/styles/theme';
 
 export default function RegisterScreen() {
   const { t } = useTranslation();
-  const dispatch = useDispatch();
-  const { colors, isDark } = useTheme();
+  const dispatch = useDispatch<AppDispatch>();
+  const { isDark } = useTheme();
 
   const [phone, setPhone] = useState('');
   const [nationalId, setNationalId] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [healthMinistryLoading, setHealthMinistryLoading] = useState(false);
   const [errors, setErrors] = useState<{
     phone?: string;
     nationalId?: string;
@@ -54,7 +60,7 @@ export default function RegisterScreen() {
     const payload = {
       phone,
       nationalId,
-      birthDate, // Already in Shamsi format (YYYY/MM/DD)
+      birthDate,
     };
 
     registerMutation.mutate(payload, {
@@ -86,11 +92,32 @@ export default function RegisterScreen() {
   };
 
   const healthMinistryLogin = async () => {
-    const callbackUrl = 'your-app://health-ministry-callback';
-    const url = `https://ssocore.behdasht.gov.ir/oauth2/authorize?response_type=code&scope=openid profile&client_id=salamhealth.ir&state=state1&redirect_uri=${callbackUrl}`;
+    setHealthMinistryLoading(true);
 
-    const { WebBrowser } = await import('expo-web-browser');
-    await WebBrowser.openAuthSessionAsync(url, callbackUrl);
+    try {
+      const code = await startHealthMinistryAuth();
+      if (!code) return;
+
+      const data = await submitHealthMinistryCode(code);
+      await applyAuthResponse(data, dispatch);
+
+      Toast.show({ type: 'success', text1: (data as any)?.messageFa || t('success') });
+
+      const redirectUrl = getSsoRedirectUrl(data);
+      if (redirectUrl) {
+        router.replace({ pathname: '/doctors-consultation', params: { url: redirectUrl } });
+        return;
+      }
+
+      router.replace('/(tabs)/home');
+    } catch (error: any) {
+      Toast.show({
+        type: 'error',
+        text1: error.response?.data?.messageFa || t('error'),
+      });
+    } finally {
+      setHealthMinistryLoading(false);
+    }
   };
 
   return (
@@ -110,7 +137,7 @@ export default function RegisterScreen() {
           type="number"
           error={errors.phone}
           placeholder="09*********"
-          disabled={registerMutation.isPending}
+          disabled={registerMutation.isPending || healthMinistryLoading}
           dir="ltr"
         />
 
@@ -120,18 +147,17 @@ export default function RegisterScreen() {
           onChangeText={setNationalId}
           type="number"
           error={errors.nationalId}
-          disabled={registerMutation.isPending}
+          disabled={registerMutation.isPending || healthMinistryLoading}
           maxLength={10}
           dir="ltr"
-
         />
 
-        {/* Jalali Date Picker Button */}
         <View className="mb-4">
           <Button
             type="secondary"
             variant="solid"
             onPress={() => setShowDatePicker(true)}
+            disabled={registerMutation.isPending || healthMinistryLoading}
             fullWidth
             className={errors.birthDate ? 'border-2 border-error' : ''}
           >
@@ -149,6 +175,7 @@ export default function RegisterScreen() {
           size="large"
           onPress={handleRegister}
           loading={registerMutation.isPending}
+          disabled={healthMinistryLoading}
           fullWidth
           className="mt-4"
         >
@@ -165,18 +192,17 @@ export default function RegisterScreen() {
 
         <Button
           type="primary"
-          variant="link"
+          variant="outline"
           size="large"
           onPress={healthMinistryLogin}
+          loading={healthMinistryLoading}
           disabled={registerMutation.isPending}
           fullWidth
-          className="border border-primary"
         >
           {t('healthMinistry')}
         </Button>
       </ScrollView>
 
-      {/* Date Picker Modal */}
       <Modal
         open={showDatePicker}
         onClose={() => setShowDatePicker(false)}

@@ -68,11 +68,13 @@ export type LoginStep =
   | 'resetPasswordVerification' 
   | 'done';
 
+export type AuthRoleState = UserRole | UserRole[] | null;
+
 export interface AuthState {
   isLoggedIn: boolean;
   loading: boolean;
   loginStep: LoginStep;
-  userRole: UserRole | null;
+  userRole: AuthRoleState;
   accessToken: string | null;
   refreshToken: string | null;
   challenge: string | null;

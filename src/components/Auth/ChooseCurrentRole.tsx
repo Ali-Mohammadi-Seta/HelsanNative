@@ -1,25 +1,26 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
+import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
-import { router } from 'expo-router';
 import Toast from 'react-native-toast-message';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-// ✅ CHANGED - Direct import instead of barrel
 import Button from '@/components/Button';
-
+import {
+  consumePendingSsoRedirectUrl,
+  normalizeRoles,
+  setStoredCurrentRole,
+} from '@/lib/auth/sso';
 import { RootState } from '@/redux/store';
 import { useTheme } from '@/styles/theme';
 
-const rolesListFa: Record<string, string> = {
-  Citizen: 'شهروند',
-  Doctor: 'پزشک',
-  Nurse: 'پرستار',
-  Receptionist: 'منشی',
-  ClinicAdmin: 'مدیر کلینیک',
-  ParaclinicAdmin: 'مدیر پاراکلینیک',
-  Psychologist: 'روانشناس',
+const roleTranslationKey: Record<string, string> = {
+  Citizen: 'roles.Citizen',
+  Doctor: 'roles.Doctor',
+  Nurse: 'roles.nurse',
+  Receptionist: 'roles.receptionist',
+  ClinicAdmin: 'roles.clinicAdmin',
+  ParaclinicAdmin: 'roles.paraclinicAdmin',
+  Psychologist: 'roles.Psychologist',
 };
 
 interface ChooseCurrentRoleProps {
@@ -28,11 +29,14 @@ interface ChooseCurrentRoleProps {
 
 export default function ChooseCurrentRole({ setShowChooseRoleModal }: ChooseCurrentRoleProps) {
   const { t } = useTranslation();
-  const { colors, isDark } = useTheme();
+  const { isDark } = useTheme();
   const { userRole } = useSelector((state: RootState) => state.auth);
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
 
-  const normalizedRoles = Array.isArray(userRole) ? userRole : [userRole];
+  const normalizedRoles = normalizeRoles(userRole);
+
+  const roleLabel = (role: string) =>
+    t(roleTranslationKey[role] || `roles.${role}`, { defaultValue: role });
 
   const handleSubmit = async () => {
     if (!selectedRole) {
@@ -43,12 +47,18 @@ export default function ChooseCurrentRole({ setShowChooseRoleModal }: ChooseCurr
       return;
     }
 
-    await AsyncStorage.setItem('currentRole', selectedRole);
+    await setStoredCurrentRole(selectedRole);
 
     Toast.show({
       type: 'success',
-      text1: `${t('currentRoleSetTo')}: ${rolesListFa[selectedRole] || selectedRole}`,
+      text1: `${t('currentRoleSetTo')}: ${roleLabel(selectedRole)}`,
     });
+
+    const pendingSsoRedirectUrl = await consumePendingSsoRedirectUrl();
+    if (pendingSsoRedirectUrl) {
+      router.replace({ pathname: '/doctors-consultation', params: { url: pendingSsoRedirectUrl } });
+      return;
+    }
 
     setShowChooseRoleModal(false);
     router.replace('/(tabs)/home');
@@ -60,7 +70,7 @@ export default function ChooseCurrentRole({ setShowChooseRoleModal }: ChooseCurr
         {t('chooseRole')}
       </Text>
 
-      <View className="space-y-2">
+      <View className="gap-2">
         {normalizedRoles.map((role) => (
           <TouchableOpacity
             key={role}
@@ -69,8 +79,8 @@ export default function ChooseCurrentRole({ setShowChooseRoleModal }: ChooseCurr
               selectedRole === role
                 ? 'border-primary bg-primary/10'
                 : isDark
-                ? 'border-border-dark bg-card-dark'
-                : 'border-gray-200 bg-white'
+                  ? 'border-border-dark bg-card-dark'
+                  : 'border-gray-200 bg-white'
             }`}
           >
             <View className="flex-row items-center">
@@ -79,8 +89,8 @@ export default function ChooseCurrentRole({ setShowChooseRoleModal }: ChooseCurr
                   selectedRole === role
                     ? 'border-primary bg-primary'
                     : isDark
-                    ? 'border-gray-600'
-                    : 'border-gray-400'
+                      ? 'border-gray-600'
+                      : 'border-gray-400'
                 }`}
               >
                 {selectedRole === role && (
@@ -88,7 +98,7 @@ export default function ChooseCurrentRole({ setShowChooseRoleModal }: ChooseCurr
                 )}
               </View>
               <Text className={`text-base ${isDark ? 'text-white' : 'text-black'}`}>
-                {rolesListFa[role] || role}
+                {roleLabel(role)}
               </Text>
             </View>
           </TouchableOpacity>

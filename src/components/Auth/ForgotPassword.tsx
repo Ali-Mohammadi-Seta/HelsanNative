@@ -37,7 +37,7 @@ export default function ForgotPassword({ onChallengeReceived }: ForgotPasswordPr
 
     setLoading(true);
     try {
-      const response = await apiClient.get(endpoints.changePassword1, { phone });
+      const response = await apiClient.get(endpoints.changePassword1, { params: { phone } });
 
       if (response?.data) {
         Toast.show({

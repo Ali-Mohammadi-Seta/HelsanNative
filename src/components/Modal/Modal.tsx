@@ -1,18 +1,18 @@
 // src/components/Modal/Modal.tsx
-import React, { ReactNode } from 'react';
-import {
-  Modal as RNModal,
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  StyleSheet,
-  ViewStyle,
-  ModalProps as RNModalProps,
-  DimensionValue, // ✅ ADD THIS
-} from 'react-native';
+import { useDirection } from '@/lib/hooks/useDirection';
 import { useTheme } from '@/styles/theme';
 import { Ionicons } from '@expo/vector-icons';
+import React, { ReactNode } from 'react';
+import {
+  DimensionValue,
+  Modal as RNModal,
+  ModalProps as RNModalProps,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import CustomButton from '../Button';
 
 type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | 'full';
@@ -54,11 +54,14 @@ const Modal: React.FC<CustomModalProps> = ({
   maskClosable,
   centered = true,
   size = 'md',
-  dir = 'rtl',
+  dir,
   destroyOnClose = false,
   ...rest
 }) => {
   const { colors, isDark } = useTheme();
+  const direction = useDirection();
+  const modalDir = dir ?? direction.dir;
+  const isRTL = modalDir === 'rtl';
 
   const handleClose = onCancel || onClose;
   const shouldShowClose = closable ?? showClose;
@@ -68,7 +71,6 @@ const Modal: React.FC<CustomModalProps> = ({
     return null;
   }
 
-  // ✅ FIX: Use DimensionValue type
   const sizeWidths: Record<ModalSize, DimensionValue> = {
     sm: '80%',
     md: '85%',
@@ -81,7 +83,7 @@ const Modal: React.FC<CustomModalProps> = ({
     if (footer !== undefined) return footer;
     if (onOk) {
       return (
-        <View style={styles.defaultFooter}>
+        <View style={[styles.defaultFooter, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <CustomButton
             type="secondary"
             variant="text"
@@ -131,18 +133,17 @@ const Modal: React.FC<CustomModalProps> = ({
               styles.modalContent,
               {
                 backgroundColor: isDark ? colors.card : colors.background,
-                width: sizeWidths[size], // ✅ Now type-safe
+                width: sizeWidths[size],
               },
             ]}
           >
-            {/* Header */}
             {(title || shouldShowClose) && (
               <View
                 style={[
                   styles.header,
                   {
                     borderBottomColor: isDark ? colors.border : '#e0e0e0',
-                    flexDirection: dir === 'rtl' ? 'row-reverse' : 'row',
+                    flexDirection: isRTL ? 'row-reverse' : 'row',
                   },
                 ]}
               >
@@ -153,7 +154,8 @@ const Modal: React.FC<CustomModalProps> = ({
                       {
                         color: isDark ? colors.text : '#000000',
                         fontFamily: 'IRANSans-Bold',
-                        textAlign: dir === 'rtl' ? 'right' : 'left',
+                        textAlign: isRTL ? 'right' : 'left',
+                        writingDirection: modalDir,
                       },
                     ]}
                   >
@@ -175,12 +177,10 @@ const Modal: React.FC<CustomModalProps> = ({
               </View>
             )}
 
-            {/* Body */}
             <ScrollView style={styles.body}>
               <View style={{ padding: 20 }}>{children}</View>
             </ScrollView>
 
-            {/* Footer */}
             {finalFooter !== null && (
               <View
                 style={[
@@ -221,7 +221,6 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   header: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
@@ -242,7 +241,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
   },
   defaultFooter: {
-    flexDirection: 'row',
     gap: 12,
   },
 });

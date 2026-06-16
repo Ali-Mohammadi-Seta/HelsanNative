@@ -1,18 +1,18 @@
 // src/components/Select/FloatingSelect.tsx
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Modal,
-  FlatList,
-  StyleSheet,
-  ViewStyle,
-  TextStyle,
-  Animated, // ✅ ADD THIS for animations
-} from 'react-native';
+import { useDirection } from '@/lib/hooks/useDirection';
 import { useTheme } from '@/styles/theme';
 import { Ionicons } from '@expo/vector-icons';
+import React, { useState } from 'react';
+import {
+  FlatList,
+  Modal,
+  StyleSheet,
+  Text,
+  TextStyle,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from 'react-native';
 
 export interface SelectOption {
   label: string;
@@ -42,25 +42,28 @@ const FloatingSelect: React.FC<FloatingSelectProps> = ({
   disabled = false,
   error,
   placeholder,
-  dir = 'rtl',
+  dir,
   containerStyle,
   selectStyle,
   labelStyle,
   floatingLabel = true,
 }) => {
   const { colors, isDark } = useTheme();
+  const direction = useDirection();
   const [modalVisible, setModalVisible] = useState(false);
+  const inputDir = dir ?? direction.dir;
+  const isRTL = inputDir === 'rtl';
 
   const selectedOption = options.find((opt) => opt.value === value);
-  const hasValue = !!value;
+  const hasValue = value !== undefined && value !== null && value !== '';
 
   const borderColor = error
     ? colors.error
     : modalVisible
-    ? colors.primary
-    : isDark
-    ? colors.border
-    : '#e0e0e0';
+      ? colors.primary
+      : isDark
+        ? colors.border
+        : '#e0e0e0';
 
   const handleSelect = (optionValue: string | number) => {
     onChange?.(optionValue);
@@ -81,8 +84,9 @@ const FloatingSelect: React.FC<FloatingSelectProps> = ({
                 ? '#1a1a1a'
                 : '#f5f5f5'
               : isDark
-              ? colors.card
-              : colors.background,
+                ? colors.card
+                : colors.background,
+            flexDirection: isRTL ? 'row-reverse' : 'row',
           },
           selectStyle,
         ]}
@@ -96,12 +100,14 @@ const FloatingSelect: React.FC<FloatingSelectProps> = ({
                   ? colors.text
                   : '#000000'
                 : isDark
-                ? '#888888'
-                : '#999999',
-              textAlign: dir === 'rtl' ? 'right' : 'left',
+                  ? '#888888'
+                  : '#999999',
+              textAlign: isRTL ? 'right' : 'left',
+              writingDirection: inputDir,
               fontFamily: 'IRANSans',
             },
           ]}
+          numberOfLines={1}
         >
           {selectedOption?.label || placeholder || 'Select...'}
         </Text>
@@ -110,10 +116,11 @@ const FloatingSelect: React.FC<FloatingSelectProps> = ({
           name="chevron-down"
           size={20}
           color={isDark ? '#888888' : '#666666'}
-          style={[
-            styles.icon,
-            { transform: [{ rotate: modalVisible ? '180deg' : '0deg' }] },
-          ]}
+          style={{
+            marginLeft: isRTL ? 0 : 8,
+            marginRight: isRTL ? 8 : 0,
+            transform: [{ rotate: modalVisible ? '180deg' : '0deg' }],
+          }}
         />
 
         {floatingLabel && label && (
@@ -126,14 +133,15 @@ const FloatingSelect: React.FC<FloatingSelectProps> = ({
                 color: error
                   ? colors.error
                   : modalVisible
-                  ? colors.primary
-                  : isDark
-                  ? '#888888'
-                  : '#666666',
+                    ? colors.primary
+                    : isDark
+                      ? '#888888'
+                      : '#666666',
                 backgroundColor: isDark ? colors.card : colors.background,
-                right: dir === 'rtl' ? 12 : undefined,
-                left: dir === 'ltr' ? 12 : undefined,
+                right: isRTL ? 12 : undefined,
+                left: isRTL ? undefined : 12,
                 fontFamily: 'IRANSans',
+                writingDirection: inputDir,
               },
               labelStyle,
             ]}
@@ -149,7 +157,8 @@ const FloatingSelect: React.FC<FloatingSelectProps> = ({
             styles.errorText,
             {
               color: colors.error,
-              textAlign: dir === 'rtl' ? 'right' : 'left',
+              textAlign: isRTL ? 'right' : 'left',
+              writingDirection: inputDir,
               fontFamily: 'IRANSans',
             },
           ]}
@@ -158,7 +167,6 @@ const FloatingSelect: React.FC<FloatingSelectProps> = ({
         </Text>
       )}
 
-      {/* Options Modal */}
       <Modal
         visible={modalVisible}
         transparent
@@ -182,7 +190,8 @@ const FloatingSelect: React.FC<FloatingSelectProps> = ({
                 {
                   color: isDark ? colors.text : '#000000',
                   fontFamily: 'IRANSans-Bold',
-                  textAlign: dir === 'rtl' ? 'right' : 'left',
+                  textAlign: isRTL ? 'right' : 'left',
+                  writingDirection: inputDir,
                 },
               ]}
             >
@@ -198,6 +207,7 @@ const FloatingSelect: React.FC<FloatingSelectProps> = ({
                   style={[
                     styles.option,
                     {
+                      flexDirection: isRTL ? 'row-reverse' : 'row',
                       backgroundColor:
                         item.value === value
                           ? isDark
@@ -215,11 +225,12 @@ const FloatingSelect: React.FC<FloatingSelectProps> = ({
                           item.value === value
                             ? colors.primary
                             : isDark
-                            ? colors.text
-                            : '#000000',
+                              ? colors.text
+                              : '#000000',
                         fontFamily:
                           item.value === value ? 'IRANSans-Bold' : 'IRANSans',
-                        textAlign: dir === 'rtl' ? 'right' : 'left',
+                        textAlign: isRTL ? 'right' : 'left',
+                        writingDirection: inputDir,
                       },
                     ]}
                   >
@@ -253,7 +264,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 14,
     minHeight: 48,
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
@@ -261,13 +271,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     flex: 1,
   },
-  icon: {
-    marginLeft: 8,
-  },
   label: {
     position: 'absolute',
     paddingHorizontal: 4,
-    // ✅ REMOVED: transition property (doesn't exist in RN)
   },
   errorText: {
     fontSize: 12,
@@ -293,7 +299,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
-    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },

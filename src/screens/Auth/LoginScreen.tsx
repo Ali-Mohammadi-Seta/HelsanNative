@@ -1,23 +1,30 @@
-// src/screens/Auth/LoginScreen.tsx
 import React, { useState } from 'react';
-import { View, Text, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
+import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
-import { router } from 'expo-router';
 import Toast from 'react-native-toast-message';
-import { FloatingInput, Button } from '@/components';
+import { Button, FloatingInput } from '@/components';
+import {
+  applyAuthResponse,
+  getSsoRedirectUrl,
+  startHealthMinistryAuth,
+  submitHealthMinistryCode,
+} from '@/lib/auth/sso';
 import { useLogin } from '@/lib/hooks/auth/useLogin';
-import { setUserLoginFormValues } from '@/redux/slices/userSlice';
 import { setLoginStep } from '@/redux/slices/authSlice';
+import { setUserLoginFormValues } from '@/redux/slices/userSlice';
+import type { AppDispatch } from '@/redux/store';
 import { useTheme } from '@/styles/theme';
 
 export default function LoginScreen() {
   const { t } = useTranslation();
-  const dispatch = useDispatch();
-  const { colors, isDark } = useTheme();
+  const dispatch = useDispatch<AppDispatch>();
+  const { isDark } = useTheme();
 
   const [phone, setPhone] = useState('');
   const [nationalId, setNationalId] = useState('');
+  const [healthMinistryLoading, setHealthMinistryLoading] = useState(false);
   const [errors, setErrors] = useState<{ phone?: string; nationalId?: string }>({});
 
   const loginMutation = useLogin();
@@ -69,11 +76,33 @@ export default function LoginScreen() {
     });
   };
 
-  const healthMinistryLogin = () => {
-    const callbackUrl = 'your-callback-url'; // Add to config
-    const url = `https://ssocore.behdasht.gov.ir/oauth2/authorize?response_type=code&scope=openid profile&client_id=salamhealth.ir&state=state1&redirect_uri=${callbackUrl}`;
-    // TODO: Implement WebBrowser for SSO
-    Toast.show({ type: 'info', text1: t('healthMinistry') });
+  const healthMinistryLogin = async () => {
+    setHealthMinistryLoading(true);
+
+    try {
+      const code = await startHealthMinistryAuth();
+      if (!code) return;
+
+      const data = await submitHealthMinistryCode(code);
+      await applyAuthResponse(data, dispatch);
+
+      Toast.show({ type: 'success', text1: (data as any)?.messageFa || t('success') });
+
+      const redirectUrl = getSsoRedirectUrl(data);
+      if (redirectUrl) {
+        router.replace({ pathname: '/doctors-consultation', params: { url: redirectUrl } });
+        return;
+      }
+
+      router.replace('/(tabs)/home');
+    } catch (error: any) {
+      Toast.show({
+        type: 'error',
+        text1: error.response?.data?.messageFa || t('error'),
+      });
+    } finally {
+      setHealthMinistryLoading(false);
+    }
   };
 
   return (
@@ -93,7 +122,7 @@ export default function LoginScreen() {
           type="number"
           error={errors.phone}
           placeholder="09*********"
-          disabled={loginMutation.isPending}
+          disabled={loginMutation.isPending || healthMinistryLoading}
           dir="ltr"
         />
 
@@ -103,9 +132,8 @@ export default function LoginScreen() {
           onChangeText={setNationalId}
           type="number"
           error={errors.nationalId}
-          disabled={loginMutation.isPending}
+          disabled={loginMutation.isPending || healthMinistryLoading}
           dir="ltr"
-
         />
 
         <Button
@@ -113,6 +141,7 @@ export default function LoginScreen() {
           size="large"
           onPress={handleLogin}
           loading={loginMutation.isPending}
+          disabled={healthMinistryLoading}
           fullWidth
           className="mt-4"
         >
@@ -129,12 +158,12 @@ export default function LoginScreen() {
 
         <Button
           type="primary"
-          variant="link"
+          variant="outline"
           size="large"
           onPress={healthMinistryLogin}
+          loading={healthMinistryLoading}
           disabled={loginMutation.isPending}
           fullWidth
-          className="border border-primary"
         >
           {t('healthMinistry')}
         </Button>

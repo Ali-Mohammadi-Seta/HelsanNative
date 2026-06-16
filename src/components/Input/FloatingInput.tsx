@@ -1,4 +1,5 @@
 // src/components/Input/FloatingInput.tsx
+import { useDirection } from '@/lib/hooks/useDirection';
 import { useTheme } from '@/styles/theme';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef, useState } from 'react';
@@ -14,20 +15,24 @@ import {
   ViewStyle,
 } from 'react-native';
 
-// Utility to convert Persian/Arabic digits to English
 const toEnglishDigits = (str: string): string => {
   const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
   const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
 
-  return str.replace(/[۰-۹]/g, (w) => persianNumbers.indexOf(w).toString())
-    .replace(/[٠-٩]/g, (w) => arabicNumbers.indexOf(w).toString());
+  return str
+    .replace(/[۰-۹]/g, (w) => String(persianNumbers.indexOf(w)))
+    .replace(/[٠-٩]/g, (w) => String(arabicNumbers.indexOf(w)));
 };
 
-// Price formatter
+const toPersianDigits = (str: string): string => {
+  const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+  return str.replace(/\d/g, (digit) => persianNumbers[Number(digit)] ?? digit);
+};
+
 const formatPrice = (value: string): string => {
   if (!value) return '';
   const numberValue = Number(value.replace(/,/g, ''));
-  if (isNaN(numberValue)) return '';
+  if (Number.isNaN(numberValue)) return '';
   return new Intl.NumberFormat().format(numberValue);
 };
 
@@ -47,6 +52,7 @@ interface FloatingInputProps extends Omit<TextInputProps, 'onChange'> {
   dir?: 'rtl' | 'ltr';
   passwordToggle?: boolean;
   floatingLabel?: boolean;
+  localizeDigits?: boolean;
 }
 
 const FloatingInput: React.FC<FloatingInputProps> = ({
@@ -62,22 +68,28 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
   containerStyle,
   inputStyle,
   labelStyle,
-  dir = 'rtl',
+  dir,
   passwordToggle = false,
   floatingLabel = true,
+  localizeDigits,
   ...rest
 }) => {
   const { colors, isDark } = useTheme();
+  const direction = useDirection();
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [displayValue, setDisplayValue] = useState('');
+  const inputDir = dir ?? direction.dir;
+  const isRTL = inputDir === 'rtl';
+  const shouldLocalizeDigits = localizeDigits ?? direction.isRTL;
 
   const labelAnimation = useRef(new Animated.Value(value ? 1 : 0)).current;
 
   useEffect(() => {
     const englishValue = toEnglishDigits(value);
-    setDisplayValue(priceFormatter ? formatPrice(englishValue) : englishValue);
-  }, [value, priceFormatter]);
+    const formattedValue = priceFormatter ? formatPrice(englishValue) : englishValue;
+    setDisplayValue(shouldLocalizeDigits ? toPersianDigits(formattedValue) : formattedValue);
+  }, [value, priceFormatter, shouldLocalizeDigits]);
 
   useEffect(() => {
     Animated.timing(labelAnimation, {
@@ -87,23 +99,21 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
     }).start();
   }, [isFocused, value, labelAnimation]);
 
-  const handleFocus = () => setIsFocused(true);
-  const handleBlur = () => setIsFocused(false);
-
   const handleChange = (text: string) => {
     const convertedValue = toEnglishDigits(text);
 
     if (priceFormatter) {
       const unformatted = convertedValue.replace(/,/g, '');
       if (!/^\d*$/.test(unformatted)) return;
-      setDisplayValue(formatPrice(unformatted));
+      const formattedValue = formatPrice(unformatted);
+      setDisplayValue(shouldLocalizeDigits ? toPersianDigits(formattedValue) : formattedValue);
       onChangeText?.(unformatted);
       return;
     }
 
     if (type === 'number' && !/^\d*$/.test(convertedValue)) return;
 
-    setDisplayValue(convertedValue);
+    setDisplayValue(shouldLocalizeDigits ? toPersianDigits(convertedValue) : convertedValue);
     onChangeText?.(convertedValue);
   };
 
@@ -147,21 +157,19 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
           {...rest}
           value={displayValue}
           onChangeText={handleChange}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           editable={!disabled}
           multiline={multiline}
           numberOfLines={numberOfLines}
           secureTextEntry={type === 'password' && !showPassword}
-          keyboardType={
-            type === 'number' || priceFormatter ? 'numeric' : 'default'
-          }
+          keyboardType={type === 'number' || priceFormatter ? 'numeric' : 'default'}
           style={[
             styles.input,
             {
               color: isDark ? colors.text : '#000000',
-              textAlign: dir === 'rtl' ? 'right' : 'left',
-              writingDirection: dir,
+              textAlign: isRTL ? 'right' : 'left',
+              writingDirection: inputDir,
               paddingTop: floatingLabel && (isFocused || value) ? 20 : 12,
               fontFamily: 'IRANSans',
             },
@@ -187,9 +195,10 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
                       ? '#888888'
                       : '#666666',
                 backgroundColor: isDark ? colors.card : colors.background,
-                right: dir === 'rtl' ? 12 : undefined,
-                left: dir === 'ltr' ? 12 : undefined,
+                right: isRTL ? 12 : undefined,
+                left: isRTL ? undefined : 12,
                 fontFamily: 'IRANSans',
+                writingDirection: inputDir,
               },
               labelStyle,
             ]}
@@ -203,7 +212,7 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
             onPress={() => setShowPassword(!showPassword)}
             style={[
               styles.eyeIcon,
-              { left: dir === 'rtl' ? 12 : undefined, right: dir === 'ltr' ? 12 : undefined },
+              { left: isRTL ? 12 : undefined, right: isRTL ? undefined : 12 },
             ]}
           >
             <Ionicons
@@ -221,7 +230,8 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
             styles.errorText,
             {
               color: colors.error,
-              textAlign: dir === 'rtl' ? 'right' : 'left',
+              textAlign: isRTL ? 'right' : 'left',
+              writingDirection: inputDir,
               fontFamily: 'IRANSans',
             },
           ]}

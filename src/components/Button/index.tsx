@@ -1,4 +1,5 @@
 // src/components/Button/index.tsx
+import { useDirection } from '@/lib/hooks/useDirection';
 import { useTheme } from '@/styles/theme';
 import React, { ReactNode } from 'react';
 import {
@@ -50,6 +51,7 @@ const CustomButton: React.FC<CustomButtonProps> = ({
   ...rest
 }) => {
   const { colors, isDark } = useTheme();
+  const direction = useDirection();
   const isDisabled = disabled || loading;
 
   // Size configurations
@@ -131,6 +133,7 @@ const CustomButton: React.FC<CustomButtonProps> = ({
     fontSize: currentSize.fontSize,
     fontFamily: 'IRANSans-Medium',
     textAlign: 'center',
+    writingDirection: direction.dir,
   };
 
   return (
@@ -146,7 +149,7 @@ const CustomButton: React.FC<CustomButtonProps> = ({
         <ActivityIndicator
           size="small"
           color={colorScheme.text}
-          style={{ marginRight: 4 }}
+          style={{ marginLeft: direction.isRTL ? 4 : 0, marginRight: direction.isRTL ? 0 : 4 }}
         />
       )}
 

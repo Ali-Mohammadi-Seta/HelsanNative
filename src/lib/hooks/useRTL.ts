@@ -1,7 +1,6 @@
-import { useTranslation } from 'react-i18next';
+import { useDirection } from './useDirection';
 
 export const useRTL = () => {
-  const { i18n } = useTranslation();
-  const isRTL = i18n.language === 'fa';
-  return { isRTL, dir: isRTL ? 'rtl' : 'ltr' };
+  const { isRTL, dir } = useDirection();
+  return { isRTL, dir };
 };

@@ -15,6 +15,8 @@ const MyHealthInfo: React.FC = () => {
   const { isDark } = useTheme();
   const { userHealthInfo, isLoading: isLoadingHealth } = useGetUserHealthInfo();
   const { userServices, isGettingServices } = useGetEmrServices();
+  const healthData = (userHealthInfo as any)?.data ?? userHealthInfo as any;
+  const servicesData = (userServices as any)?.data ?? userServices;
 
   if (isLoadingHealth || isGettingServices) {
     return (
@@ -37,20 +39,20 @@ const MyHealthInfo: React.FC = () => {
           </Text>
           <PatientInfoRow
             label={t('name')}
-            value={userHealthInfo?.data?.name || '-'}
+            value={healthData?.name || '-'}
           />
           <PatientInfoRow
             label={t('nationalId')}
-            value={userHealthInfo?.data?.nationalId || '-'}
+            value={healthData?.nationalId || '-'}
           />
           <PatientInfoRow
             label={t('age')}
-            value={userHealthInfo?.data?.age || '-'}
+            value={healthData?.age || '-'}
           />
         </View>
 
         {/* Health Summary */}
-        <HealthSummary patientInfo={userHealthInfo?.data} />
+        <HealthSummary patientInfo={healthData} />
 
         {/* Vital Signs Grid */}
         <Text className="text-foreground text-lg font-bold mb-3">
@@ -59,28 +61,28 @@ const MyHealthInfo: React.FC = () => {
         <View className="flex-row flex-wrap justify-between mb-4">
           <VitalSignCard
             title={t('bloodPressure')}
-            value={userHealthInfo?.data?.vitalSigns?.bloodPressure || '-'}
+            value={healthData?.vitalSigns?.bloodPressure || '-'}
             icon="heart"
             unit="mmHg"
             className="w-[48%] mb-3"
           />
           <VitalSignCard
             title={t('temp')}
-            value={userHealthInfo?.data?.vitalSigns?.temperature || '-'}
+            value={healthData?.vitalSigns?.temperature || '-'}
             icon="thermometer"
             unit="°C"
             className="w-[48%] mb-3"
           />
           <VitalSignCard
             title={t('heartBeats')}
-            value={userHealthInfo?.data?.vitalSigns?.heartRate || '-'}
+            value={healthData?.vitalSigns?.heartRate || '-'}
             icon="activity"
             unit="bpm"
             className="w-[48%] mb-3"
           />
           <VitalSignCard
             title={t('bloodsugar')}
-            value={userHealthInfo?.data?.vitalSigns?.bloodSugar || '-'}
+            value={healthData?.vitalSigns?.bloodSugar || '-'}
             icon="droplet"
             unit="mg/dl"
             className="w-[48%] mb-3"
@@ -88,9 +90,9 @@ const MyHealthInfo: React.FC = () => {
         </View>
 
         {/* Medical Info Sections */}
-        <DiagnosisCard patientInfo={userHealthInfo?.data} />
-        <AllergiesCard patientInfo={userHealthInfo?.data} />
-        <MedicationsCard medications={userServices?.data} />
+        <DiagnosisCard patientInfo={healthData} />
+        <AllergiesCard patientInfo={healthData} />
+        <MedicationsCard medications={servicesData} />
       </View>
     </ScrollView>
   );

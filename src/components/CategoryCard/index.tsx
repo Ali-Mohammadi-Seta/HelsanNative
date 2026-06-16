@@ -1,31 +1,34 @@
 // src/components/CategoryCard/index.tsx
-import React from 'react';
-import { TouchableOpacity, Text, Image, StyleSheet, Dimensions } from 'react-native';
+import { useDirection } from '@/lib/hooks/useDirection';
+import { useTheme } from '@/styles/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useTheme } from '@/styles/theme';
-
-const { width } = Dimensions.get('window');
-const numColumns = 3;
-const cardMargin = 10;
-const containerPadding = 32;
-const CARD_SIZE = (width - containerPadding - (cardMargin * numColumns * 2)) / numColumns;
+import React from 'react';
+import { Image, StyleSheet, Text, TouchableOpacity, useWindowDimensions } from 'react-native';
 
 interface CategoryCardProps {
   title: string;
   icon: any;
   url?: string;
-  gradientColors?: [string, string, ...string[]]; // ✅ FIX: Proper tuple type (at least 2 colors)
+  gradientColors?: [string, string, ...string[]];
   onPress?: () => void;
+  size?: number;
 }
 
 const CategoryCard: React.FC<CategoryCardProps> = ({
   title,
   icon,
   url,
-  gradientColors = ['#16a34a', '#22c55e'], // ✅ Default with 2 colors
+  gradientColors = ['#16a34a', '#22c55e'],
   onPress,
+  size,
 }) => {
+  const { colors, isDark } = useTheme();
+  const direction = useDirection();
+  const { width } = useWindowDimensions();
+  const computedSize = size ?? Math.min(112, Math.max(86, (width - 64) / 3));
+  const iconSize = Math.min(64, computedSize * 0.56);
+
   const handlePress = () => {
     if (onPress) {
       onPress();
@@ -34,29 +37,45 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
     }
   };
 
-  const { colors, isDark } = useTheme();
-
-
   return (
     <TouchableOpacity
       onPress={handlePress}
-      activeOpacity={0.8}
-      style={styles.container}
+      activeOpacity={0.82}
+      style={[styles.container, { width: computedSize }]}
     >
       <LinearGradient
-        colors={gradientColors} // ✅ Now properly typed
+        colors={gradientColors}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={[styles.gradient, { width: CARD_SIZE, height: CARD_SIZE }]}
+        style={[
+          styles.gradient,
+          {
+            width: computedSize,
+            height: computedSize,
+            shadowOpacity: isDark ? 0.28 : 0.16,
+          },
+        ]}
       >
         <Image
           source={icon}
-          style={styles.icon}
+          style={{ width: iconSize, height: iconSize }}
           resizeMode="contain"
         />
       </LinearGradient>
 
-      <Text style={[styles.title, { width: CARD_SIZE } , {color: colors.text }]} numberOfLines={2} className=''>
+      <Text
+        style={[
+          styles.title,
+          {
+            width: computedSize,
+            color: colors.text,
+            writingDirection: direction.dir,
+          },
+        ]}
+        numberOfLines={2}
+        adjustsFontSizeToFit
+        minimumFontScale={0.84}
+      >
         {title}
       </Text>
     </TouchableOpacity>
@@ -65,29 +84,23 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    margin: cardMargin,
     alignItems: 'center',
+    marginBottom: 14,
   },
   gradient: {
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 8,
     elevation: 4,
   },
-  icon: {
-    width: 60,
-    height: 60,
-  },
   title: {
-    color: '#4b5563',
     fontSize: 12,
     fontFamily: 'IRANSans-Bold',
     textAlign: 'center',
-    marginTop: 6,
+    marginTop: 7,
     lineHeight: 16,
   },
 });

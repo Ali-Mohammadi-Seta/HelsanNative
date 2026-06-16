@@ -11,6 +11,8 @@ export default function ProtectedLayout() {
     >
       <Stack.Screen name="edit-profile" />
       <Stack.Screen name="my-emr" />
+      <Stack.Screen name="settings" />
+      <Stack.Screen name="support" />
     </Stack>
   );
 }

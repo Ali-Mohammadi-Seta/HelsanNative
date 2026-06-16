@@ -1,9 +1,10 @@
+import { useDirection } from '@/lib/hooks/useDirection';
 import { useTheme } from '@/styles/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import { Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface BackHeaderProps {
@@ -19,10 +20,10 @@ const BackHeader: React.FC<BackHeaderProps> = ({
   showBackButton = true,
   rightElement,
 }) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const direction = useDirection();
   const insets = useSafeAreaInsets();
-  const isRTL = i18n.language === 'fa';
 
   const handleBackPress = () => {
     if (onBackPress) onBackPress();
@@ -38,22 +39,33 @@ const BackHeader: React.FC<BackHeaderProps> = ({
         borderBottomColor: isDark ? colors.border : '#e5e5e5',
       }}
     >
-      <View className="flex-row items-center justify-between px-4 py-3 min-h-[56px]">
-        <View className="flex-1">
+      <View
+        className="items-center justify-between px-4 py-3 min-h-[56px]"
+        style={direction.row}
+      >
+        <View className="flex-1" style={direction.startItems}>
           {showBackButton && (
-            <TouchableOpacity onPress={handleBackPress} className="flex-row items-center py-1 px-1" activeOpacity={0.7}>
+            <TouchableOpacity
+              onPress={handleBackPress}
+              className="items-center py-1 px-1"
+              style={direction.row}
+              activeOpacity={0.7}
+            >
               <Ionicons
-                name={isRTL ? 'arrow-forward' : 'arrow-back'}
+                name={direction.isRTL ? 'arrow-forward' : 'arrow-back'}
                 size={24}
                 color={isDark ? colors.text : '#000000'}
               />
-              <Text style={{
-                fontSize: 16,
-                marginLeft: 4,
-                marginRight: 4,
-                fontFamily: 'IRANSans',
-                color: isDark ? colors.text : '#000000'
-              }}>
+              <Text
+                style={{
+                  fontSize: 16,
+                  marginLeft: 4,
+                  marginRight: 4,
+                  fontFamily: 'IRANSans',
+                  color: isDark ? colors.text : '#000000',
+                  writingDirection: direction.dir,
+                }}
+              >
                 {t('return')}
               </Text>
             </TouchableOpacity>
@@ -67,7 +79,8 @@ const BackHeader: React.FC<BackHeaderProps> = ({
                 fontSize: 18,
                 fontFamily: 'IRANSans-Bold',
                 textAlign: 'center',
-                color: isDark ? colors.text : '#000000'
+                writingDirection: direction.dir,
+                color: isDark ? colors.text : '#000000',
               }}
               numberOfLines={1}
             >
@@ -76,7 +89,9 @@ const BackHeader: React.FC<BackHeaderProps> = ({
           )}
         </View>
 
-        <View className="flex-1 items-end">{rightElement}</View>
+        <View className="flex-1" style={direction.endItems}>
+          {rightElement}
+        </View>
       </View>
     </View>
   );

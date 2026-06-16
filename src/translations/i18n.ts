@@ -31,7 +31,7 @@ i18n.use(initReactI18next).init({
 
 // Load saved language asynchronously (user preference takes priority)
 // Only run in React Native environment (not during SSR/bundling)
-if (typeof window !== 'undefined' || typeof global !== 'undefined') {
+if (typeof window !== 'undefined' || typeof globalThis !== 'undefined') {
   // Defer AsyncStorage call to avoid issues during module initialization
   const loadSavedLanguage = async () => {
     try {

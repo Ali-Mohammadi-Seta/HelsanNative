@@ -1,13 +1,18 @@
-// app/(auth)/health-ministry-callback.tsx
 import React, { useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import Toast from 'react-native-toast-message';
-import apiClient from '@/lib/api/apiClient';
-import endpoints from '@/config/endpoints';
+import { useDispatch } from 'react-redux';
+import {
+  applyAuthResponse,
+  getSsoRedirectUrl,
+  submitHealthMinistryCode,
+} from '@/lib/auth/sso';
+import type { AppDispatch } from '@/redux/store';
 
 export default function HealthMinistryCallback() {
   const params = useLocalSearchParams<{ code?: string }>();
+  const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -21,28 +26,31 @@ export default function HealthMinistryCallback() {
       }
 
       try {
-        const response = await apiClient.post(endpoints.healthGovRegister, {
-          code: params.code,
+        const data = await submitHealthMinistryCode(params.code);
+        await applyAuthResponse(data, dispatch);
+
+        Toast.show({
+          type: 'success',
+          text1: (data as any)?.messageFa || 'Success',
         });
 
-        if (response?.data) {
-          Toast.show({
-            type: 'success',
-            text1: response.data?.messageFa || 'Success',
-          });
+        const redirectUrl = getSsoRedirectUrl(data);
+        if (redirectUrl) {
+          router.replace({ pathname: '/doctors-consultation', params: { url: redirectUrl } });
+          return;
         }
       } catch (error: any) {
         Toast.show({
           type: 'error',
           text1: error.response?.data?.messageFa || 'Error',
         });
-      } finally {
-        router.replace('/(tabs)/home');
       }
+
+      router.replace('/(tabs)/home');
     };
 
     handleCallback();
-  }, [params.code]);
+  }, [dispatch, params.code]);
 
   return (
     <View className="flex-1 justify-center items-center bg-white">

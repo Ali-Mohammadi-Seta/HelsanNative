@@ -68,7 +68,7 @@ export default function ResetPasswordVerification({
   const resendCode = async () => {
     setLoading(true);
     try {
-      const response = await apiClient.get(endpoints.changePassword1, { phone });
+      const response = await apiClient.get(endpoints.changePassword1, { params: { phone } });
 
       if (response?.data) {
         Toast.show({

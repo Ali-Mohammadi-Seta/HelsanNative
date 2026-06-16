@@ -1,18 +1,19 @@
 import { Tabs } from 'expo-router';
-import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
+import { useDirection } from '@/lib/hooks/useDirection';
+import { RootState } from '@/redux/store';
 import { useTheme } from '@/styles/theme';
+import { Platform } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
-import { RootState } from '@/redux/store';
-import { Platform } from 'react-native';
 
 export default function TabsLayout() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const direction = useDirection();
   const insets = useSafeAreaInsets();
   const isLoggedIn = useSelector((s: RootState) => s.auth.isLoggedIn);
-  const writingDirection = i18n.language === 'fa' ? 'rtl' : 'ltr';
 
   return (
     <Tabs
@@ -26,12 +27,12 @@ export default function TabsLayout() {
           height: 60 + insets.bottom,
           paddingBottom: insets.bottom + 8,
           paddingTop: 8,
-          flexDirection: writingDirection === 'rtl' ? 'row-reverse' : 'row',
+          flexDirection: direction.isRTL ? 'row-reverse' : 'row',
         },
         tabBarLabelStyle: {
           fontFamily: 'IRANSans',
           fontSize: 12,
-          writingDirection,
+          writingDirection: direction.dir,
           color: isDark ? colors.text : colors.textSecondary,
           ...(Platform.OS === 'ios' ? { textAlign: 'center' as const } : {}),
         },

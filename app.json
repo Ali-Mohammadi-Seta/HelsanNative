@@ -12,14 +12,26 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.salam.app"
+      "bundleIdentifier": "com.salam.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Salam uses the camera for video consultations.",
+        "NSMicrophoneUsageDescription": "Salam uses the microphone for voice and video consultations.",
+        "NSLocationWhenInUseUsageDescription": "Salam uses your location to improve nearby healthcare services."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.salam.app"
+      "package": "com.salam.app",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -39,7 +51,9 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "expo-localization",
+      "expo-status-bar"
     ],
     "experiments": {
       "typedRoutes": true
@@ -47,6 +61,9 @@
     "extra": {
       "apiUrl": "http://192.168.1.69:8080/api",
       "behdashtCallbackUrl": "salam://health-ministry-callback",
+      "consultationSsoUrl": "https://sso.inhso.ir/oidc/auth?client_id=client_1754117598828_b4e0885381f0f549&redirect_uri=https://consultation.inhso.ir/LoginFromSso&response_type=code&state=random-string&scope=openid%20profile%20email%20offline_access&resource=https://inhso.ir",
+      "sepehrSalamatSsoUrl": "https://sso.inhso.ir/oidc/auth?client_id=client_1753181661291_29ef29cc769b9291&redirect_uri=https://inhs.isikato.ir/LoginFromSso&response_type=code&state=random-string&scope=openid%20profile%20email%20offline_access&resource=https://inhso.ir",
+      "ssoLogoutUrl": "https://sso.inhso.ir/auth/logout",
       "router": {
         "origin": false
       },

@@ -35,7 +35,7 @@ const InfoSection: React.FC<InfoSectionProps> = ({
           <Ionicons
             name={isExpanded ? 'chevron-up' : 'chevron-down'}
             size={20}
-            color={colors.foreground}
+            color={colors.text}
           />
         )}
       </TouchableOpacity>

@@ -35,7 +35,7 @@ const OtpInput: React.FC<OtpInputProps> = ({
   onChangeText,
   disabled = false,
   autoFocus = false,
-  dir = 'rtl',
+  dir = 'ltr',
   containerStyle,
   boxStyle,
   textStyle,

@@ -1,28 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { useLocalSearchParams } from 'expo-router';
 import Toast from 'react-native-toast-message';
-import { Ionicons } from '@expo/vector-icons';
-
-// ✅ UPDATED IMPORTS - Import OtpInput and Modal from index, Auth component directly
-import { OtpInput, Modal, BackHeader } from '@/components';
-import ChooseCurrentRole from '@/components/Auth/ChooseCurrentRole'; // ✅ Direct import
-
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BackHeader, Modal, OtpInput } from '@/components';
+import ChooseCurrentRole from '@/components/Auth/ChooseCurrentRole';
 import { useLogin } from '@/lib/hooks/auth/useLogin';
 import { useRegister } from '@/lib/hooks/auth/useRegister';
 import { useVerifyLogin } from '@/lib/hooks/auth/useVerifyLogin';
 import { useVerifyRegister } from '@/lib/hooks/auth/useVerifyRegister';
-import { checkAuthorizeApi } from '@/lib/api/apiService';
-import { setIsLoggedIn, setUserRole } from '@/redux/slices/authSlice';
-import { RootState } from '@/redux/store';
+import {
+  applyAuthResponse,
+  clearPendingSsoRedirectUrl,
+  getSsoRedirectUrl,
+  getStoredCurrentRole,
+  normalizeRoles,
+  setPendingSsoRedirectUrl,
+  setStoredCurrentRole,
+} from '@/lib/auth/sso';
+import { RootState, AppDispatch } from '@/redux/store';
 import { useTheme } from '@/styles/theme';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function VerificationScreen() {
   const { t } = useTranslation();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ type: 'login' | 'register' }>();
@@ -43,15 +47,63 @@ export default function VerificationScreen() {
   const isLoading = verifyLoginMutation.isPending || verifyRegisterMutation.isPending;
 
   useEffect(() => {
-    if (expiration > 0) {
-      const timer = setTimeout(() => setExpiration((prev) => prev - 1), 1000);
-      return () => clearTimeout(timer);
-    }
+    if (expiration <= 0) return;
+    const timer = setTimeout(() => setExpiration((prev) => prev - 1), 1000);
+    return () => clearTimeout(timer);
   }, [expiration]);
+
+  const goToConsultation = (url: string) => {
+    router.replace({ pathname: '/doctors-consultation', params: { url } });
+  };
+
+  const finishVerification = async (data: unknown) => {
+    const redirectUrl = getSsoRedirectUrl(data);
+    const authResult = await applyAuthResponse(data, dispatch);
+    const roles = normalizeRoles(authResult?.roles?.ourRoles);
+
+    Toast.show({ type: 'success', text1: (data as any)?.messageFa || t('success') });
+
+    if (redirectUrl) {
+      const currentRole = await getStoredCurrentRole();
+
+      if (currentRole) {
+        await clearPendingSsoRedirectUrl();
+        goToConsultation(redirectUrl);
+        return;
+      }
+
+      if (roles.length === 1) {
+        await setStoredCurrentRole(roles[0]);
+        await clearPendingSsoRedirectUrl();
+        goToConsultation(redirectUrl);
+        return;
+      }
+
+      if (roles.length > 1) {
+        await setPendingSsoRedirectUrl(redirectUrl);
+        setShowChooseRoleModal(true);
+        return;
+      }
+
+      goToConsultation(redirectUrl);
+      return;
+    }
+
+    await clearPendingSsoRedirectUrl();
+
+    if (roles.length > 1) {
+      setShowChooseRoleModal(true);
+      return;
+    }
+
+    router.replace('/(tabs)/home');
+  };
 
   const resendCode = () => {
     const formValues = isLogin ? userLoginFormValues : userRegisterFormValues;
     const mutation = isLogin ? loginMutation : registerMutation;
+
+    if (!formValues) return;
 
     mutation.mutate(formValues as any, {
       onSuccess: () => {
@@ -66,24 +118,13 @@ export default function VerificationScreen() {
   };
 
   const onVerifyCode = (otpCode: string) => {
+    if (isLoading) return;
+
     const mutation = isLogin ? verifyLoginMutation : verifyRegisterMutation;
     const payload = isLogin ? { otp: otpCode } : { otpValue: otpCode };
 
     mutation.mutate(payload as any, {
-      onSuccess: async (data) => {
-        // (hooks already set login + navigate, but we keep this for role modal UX)
-        try {
-          const authResult = await checkAuthorizeApi();
-          dispatch(setIsLoggedIn(authResult?.isLogin || true));
-          dispatch(setUserRole(authResult?.roles?.ourRoles || []));
-          Toast.show({ type: 'success', text1: data?.messageFa || t('success') });
-
-          const roles = authResult?.roles?.ourRoles || [];
-          if (roles.length > 1) setShowChooseRoleModal(true);
-        } catch {
-          // hooks will have navigated to home anyway
-        }
-      },
+      onSuccess: finishVerification,
       onError: (error: any) => {
         Toast.show({ type: 'error', text1: error.response?.data?.messageFa || t('error') });
         setCode('');
@@ -112,7 +153,11 @@ export default function VerificationScreen() {
             {t('resetText')} <Text className="text-primary">{expiration}</Text> {t('second')}
           </Text>
         ) : (
-          <TouchableOpacity onPress={resendCode} disabled={loginMutation.isPending || registerMutation.isPending} className="flex-row items-center justify-center mt-6">
+          <TouchableOpacity
+            onPress={resendCode}
+            disabled={loginMutation.isPending || registerMutation.isPending}
+            className="flex-row items-center justify-center mt-6"
+          >
             <Ionicons name="refresh" size={20} color={colors.primary} />
             <Text className="text-primary font-bold ml-2">{t('sendAgain')}</Text>
           </TouchableOpacity>

@@ -1,7 +1,7 @@
 // src/redux/slices/authSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AuthState, LoginStep, UserRole } from '@/types/auth.types';
+import { AuthRoleState, AuthState, LoginStep, UserRole } from '@/types/auth.types';
 import config from '@/config';
 
 const initialState: AuthState = {
@@ -57,7 +57,7 @@ const authSlice = createSlice({
     },
 
     // Set user role
-    setUserRole: (state, action: PayloadAction<UserRole>) => {
+    setUserRole: (state, action: PayloadAction<AuthRoleState>) => {
       state.userRole = action.payload;
     },
 
@@ -88,6 +88,8 @@ const authSlice = createSlice({
         config.userRefreshToken,
         config.userIsikatoToken,
         config.frontToken,
+        'currentRole',
+        'pendingSsoRedirectUrl',
       ]);
     },
 

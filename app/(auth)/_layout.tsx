@@ -11,6 +11,7 @@ export default function AuthLayout() {
     >
       <Stack.Screen name="index" />
       <Stack.Screen name="verification" />
+      <Stack.Screen name="health-ministry-callback" />
     </Stack>
   );
 }
