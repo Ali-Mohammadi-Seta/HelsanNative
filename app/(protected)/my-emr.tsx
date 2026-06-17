@@ -1,4 +1,4 @@
-import { BackHeader, Button, Modal } from '@/components';
+import { BackHeader, Button, Modal, SkeletonList } from '@/components';
 import {
   getDeliveredPrescriptionsApi,
   getEmrAdviceApi,
@@ -14,7 +14,7 @@ import MyHealthInfo from '@/components/EMR/MyHealthInfo';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import React, { useMemo, useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 type EmrTab = 'health-record' | 'my-prescription' | 'delivered-prescription' | 'my-advices';
@@ -79,8 +79,8 @@ export default function MyEmrScreen() {
     if (activeTab === 'health-record') {
       if (isHealthLoading) {
         return (
-          <View className="flex-1 justify-center items-center py-20">
-            <ActivityIndicator size="large" color={colors.primary} />
+          <View className="flex-1 p-4" style={{ backgroundColor: colors.background }}>
+            <SkeletonList count={5} rows={3} avatar />
           </View>
         );
       }
@@ -179,9 +179,9 @@ function PrescriptionList({ mode }: { mode: 'issued' | 'delivered' }) {
   return (
     <View className="flex-1" style={{ backgroundColor: colors.background }}>
       {prescriptionsQuery.isLoading ? (
-        <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
+        <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+          <SkeletonList count={5} rows={3} avatar />
+        </ScrollView>
       ) : prescriptions.length === 0 ? (
         <View className="flex-1 justify-center items-center p-8">
           <Ionicons name="document-text-outline" size={46} color={colors.primary} />
@@ -227,8 +227,8 @@ function PrescriptionList({ mode }: { mode: 'issued' | 'delivered' }) {
         size="xl"
       >
         {detailsQuery.isLoading ? (
-          <View className="py-12 items-center">
-            <ActivityIndicator size="large" color={colors.primary} />
+          <View className="py-2">
+            <SkeletonList count={4} rows={2} avatar={false} />
           </View>
         ) : (
           <View>
@@ -306,8 +306,8 @@ function AdviceList() {
 
   if (adviceQuery.isLoading) {
     return (
-      <View className="flex-1 justify-center items-center" style={{ backgroundColor: colors.background }}>
-        <ActivityIndicator size="large" color={colors.primary} />
+      <View className="flex-1 p-4" style={{ backgroundColor: colors.background }}>
+        <SkeletonList count={4} rows={3} avatar />
       </View>
     );
   }

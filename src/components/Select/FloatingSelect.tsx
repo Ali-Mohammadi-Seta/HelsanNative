@@ -4,7 +4,6 @@ import { useTheme } from '@/styles/theme';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-  FlatList,
   Modal,
   StyleSheet,
   Text,
@@ -13,6 +12,8 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
+import { BlurView } from 'expo-blur';
 
 export interface SelectOption {
   label: string;
@@ -174,11 +175,17 @@ const FloatingSelect: React.FC<FloatingSelectProps> = ({
         onRequestClose={() => setModalVisible(false)}
       >
         <TouchableOpacity
-          style={styles.modalOverlay}
+          style={{ flex: 1 }}
           activeOpacity={1}
           onPress={() => setModalVisible(false)}
         >
-          <View
+          <BlurView
+            intensity={15}
+            tint={isDark ? "dark" : "light"}
+            style={styles.modalOverlay}
+          >
+          <TouchableOpacity activeOpacity={1} style={{ width: '100%', maxHeight: '70%' }}>
+            <View
             style={[
               styles.modalContent,
               { backgroundColor: isDark ? colors.card : colors.background },
@@ -198,8 +205,9 @@ const FloatingSelect: React.FC<FloatingSelectProps> = ({
               {label || 'Select an option'}
             </Text>
 
-            <FlatList
+            <FlashList
               data={options}
+              estimatedItemSize={50}
               keyExtractor={(item) => String(item.value)}
               renderItem={({ item }) => (
                 <TouchableOpacity
@@ -247,6 +255,8 @@ const FloatingSelect: React.FC<FloatingSelectProps> = ({
               )}
             />
           </View>
+          </TouchableOpacity>
+          </BlurView>
         </TouchableOpacity>
       </Modal>
     </View>
@@ -282,14 +292,15 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
     justifyContent: 'center',
     padding: 20,
   },
   modalContent: {
     borderRadius: 16,
     padding: 20,
-    maxHeight: '70%',
+    width: '100%',
+    flex: 1,
   },
   modalTitle: {
     fontSize: 18,

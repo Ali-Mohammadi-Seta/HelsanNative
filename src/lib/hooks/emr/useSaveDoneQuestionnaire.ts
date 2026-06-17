@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { saveDoneQuestionnaireApi } from '@/lib/api/apiService';
-import Toast from 'react-native-toast-message';
+import i18n from '@/translations/i18n';
+import { showToast } from '@/lib/toast/showToast';
 
 export const useSaveDoneQuestionnaire = () => {
   const queryClient = useQueryClient();
@@ -15,10 +16,11 @@ export const useSaveDoneQuestionnaire = () => {
       }
     },
     onError: (error: any) => {
-      Toast.show({
+      showToast({
         type: 'error',
-        text1: 'Error',
-        text2: error?.message || 'Failed to save questionnaire',
+        message: error,
+        fallback: i18n.language === 'fa' ? 'ذخیره پرسشنامه انجام نشد.' : 'Failed to save questionnaire.',
+        language: i18n.language === 'fa' ? 'fa' : 'en',
       });
     },
   });

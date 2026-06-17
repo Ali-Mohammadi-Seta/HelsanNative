@@ -1,4 +1,4 @@
-import { BackHeader, Button, FloatingInput, FloatingSelect, Modal } from '@/components';
+import { BackHeader, Button, FloatingInput, FloatingSelect, Modal, SkeletonList } from '@/components';
 import {
   closeSupportTicketApi,
   createSupportTicketApi,
@@ -8,12 +8,12 @@ import {
   type SupportTicketStatus,
 } from '@/lib/api/apiService';
 import { useDirection } from '@/lib/hooks/useDirection';
+import { showToast } from '@/lib/toast/showToast';
 import { useTheme } from '@/styles/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import React, { useMemo, useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import Toast from 'react-native-toast-message';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 type TicketFilter = 'all' | SupportTicketStatus;
 
@@ -62,6 +62,7 @@ export default function SupportScreen() {
   const { colors, isDark } = useTheme();
   const direction = useDirection();
   const queryClient = useQueryClient();
+  const language = direction.isRTL ? 'fa' : 'en';
   const [filter, setFilter] = useState<TicketFilter>('all');
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
@@ -133,36 +134,36 @@ export default function SupportScreen() {
 
   const createMutation = useMutation({
     mutationFn: createSupportTicketApi,
-    onSuccess: () => {
+    onSuccess: (result) => {
       setCreateOpen(false);
       setContent('');
       setCustomSubject('');
       queryClient.invalidateQueries({ queryKey: ['supportTickets'] });
-      Toast.show({ type: 'success', text1: text.success });
+      showToast({ type: 'success', message: result, fallback: text.success, language });
     },
-    onError: () => Toast.show({ type: 'error', text1: text.failed }),
+    onError: (error) => showToast({ type: 'error', message: error, fallback: text.failed, language }),
   });
 
   const replyMutation = useMutation({
     mutationFn: ({ ticketId, content: replyContent }: { ticketId: string; content: string }) =>
       replySupportTicketApi(ticketId, { content: replyContent }),
-    onSuccess: () => {
+    onSuccess: (result) => {
       setReply('');
       queryClient.invalidateQueries({ queryKey: ['supportTickets'] });
       queryClient.invalidateQueries({ queryKey: ['supportTicket', selectedTicketId] });
-      Toast.show({ type: 'success', text1: text.success });
+      showToast({ type: 'success', message: result, fallback: text.success, language });
     },
-    onError: () => Toast.show({ type: 'error', text1: text.failed }),
+    onError: (error) => showToast({ type: 'error', message: error, fallback: text.failed, language }),
   });
 
   const closeMutation = useMutation({
     mutationFn: closeSupportTicketApi,
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['supportTickets'] });
       queryClient.invalidateQueries({ queryKey: ['supportTicket', selectedTicketId] });
-      Toast.show({ type: 'success', text1: text.success });
+      showToast({ type: 'success', message: result, fallback: text.success, language });
     },
-    onError: () => Toast.show({ type: 'error', text1: text.failed }),
+    onError: (error) => showToast({ type: 'error', message: error, fallback: text.failed, language }),
   });
 
   const tickets: SupportTicketSummary[] = useMemo(() => {
@@ -268,8 +269,8 @@ export default function SupportScreen() {
         </Text>
 
         {ticketsQuery.isLoading ? (
-          <View className="py-16 items-center">
-            <ActivityIndicator size="large" color={colors.primary} />
+          <View>
+            <SkeletonList count={4} rows={3} avatar />
           </View>
         ) : tickets.length === 0 ? (
           <View className="rounded-2xl p-8 items-center" style={{ backgroundColor: isDark ? colors.card : '#ffffff' }}>
@@ -371,8 +372,8 @@ export default function SupportScreen() {
         size="xl"
       >
         {ticketDetailQuery.isLoading ? (
-          <View className="py-12 items-center">
-            <ActivityIndicator size="large" color={colors.primary} />
+          <View className="py-2">
+            <SkeletonList count={3} rows={2} avatar={false} />
           </View>
         ) : (
           <View>

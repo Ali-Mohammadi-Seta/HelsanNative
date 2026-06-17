@@ -3,7 +3,6 @@ import { Text, TouchableOpacity, View } from 'react-native';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
-import Toast from 'react-native-toast-message';
 import Button from '@/components/Button';
 import {
   consumePendingSsoRedirectUrl,
@@ -12,6 +11,8 @@ import {
 } from '@/lib/auth/sso';
 import { RootState } from '@/redux/store';
 import { useTheme } from '@/styles/theme';
+import { useDirection } from '@/lib/hooks/useDirection';
+import { showToast } from '@/lib/toast/showToast';
 
 const roleTranslationKey: Record<string, string> = {
   Citizen: 'roles.Citizen',
@@ -30,6 +31,7 @@ interface ChooseCurrentRoleProps {
 export default function ChooseCurrentRole({ setShowChooseRoleModal }: ChooseCurrentRoleProps) {
   const { t } = useTranslation();
   const { isDark } = useTheme();
+  const direction = useDirection();
   const { userRole } = useSelector((state: RootState) => state.auth);
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
 
@@ -40,18 +42,17 @@ export default function ChooseCurrentRole({ setShowChooseRoleModal }: ChooseCurr
 
   const handleSubmit = async () => {
     if (!selectedRole) {
-      Toast.show({
-        type: 'warning',
-        text1: t('pleaseSelectRole'),
-      });
+      showToast({ type: 'warning', message: t('pleaseSelectRole'), fallback: t('pleaseSelectRole'), language: direction.isRTL ? 'fa' : 'en' });
       return;
     }
 
     await setStoredCurrentRole(selectedRole);
 
-    Toast.show({
+    showToast({
       type: 'success',
-      text1: `${t('currentRoleSetTo')}: ${roleLabel(selectedRole)}`,
+      message: `${t('currentRoleSetTo')}: ${roleLabel(selectedRole)}`,
+      fallback: t('success'),
+      language: direction.isRTL ? 'fa' : 'en',
     });
 
     const pendingSsoRedirectUrl = await consumePendingSsoRedirectUrl();
@@ -75,23 +76,21 @@ export default function ChooseCurrentRole({ setShowChooseRoleModal }: ChooseCurr
           <TouchableOpacity
             key={role}
             onPress={() => setSelectedRole(role)}
-            className={`p-4 rounded-lg border-2 ${
-              selectedRole === role
+            className={`p-4 rounded-lg border-2 ${selectedRole === role
                 ? 'border-primary bg-primary/10'
                 : isDark
                   ? 'border-border-dark bg-card-dark'
                   : 'border-gray-200 bg-white'
-            }`}
+              }`}
           >
             <View className="flex-row items-center">
               <View
-                className={`w-5 h-5 rounded-full border-2 mr-3 ${
-                  selectedRole === role
+                className={`w-5 h-5 rounded-full border-2 mr-3 ${selectedRole === role
                     ? 'border-primary bg-primary'
                     : isDark
                       ? 'border-gray-600'
                       : 'border-gray-400'
-                }`}
+                  }`}
               >
                 {selectedRole === role && (
                   <View className="w-full h-full rounded-full bg-white scale-50" />

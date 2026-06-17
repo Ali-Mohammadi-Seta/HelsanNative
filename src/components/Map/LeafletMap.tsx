@@ -1,6 +1,6 @@
 import { useDirection } from '@/lib/hooks/useDirection';
 import { useTheme } from '@/styles/theme';
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Text, View } from 'react-native';
 
 let WebViewComponent: typeof import('react-native-webview').WebView | null = null;
@@ -36,12 +36,10 @@ const LeafletMap: React.FC<LeafletMapProps> = ({ places, onRegionChange }) => {
   const direction = useDirection();
 
   const htmlContent = useMemo(() => {
-    const tileUrl = isDark
-      ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-      : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-    const mapBackground = isDark ? '#111827' : '#eef2f7';
-    const attributionBackground = isDark ? 'rgba(17, 24, 39, 0.78)' : 'rgba(255, 255, 255, 0.82)';
-    const attributionColor = isDark ? '#cbd5e1' : '#475569';
+    const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    const mapBackground = '#eef2f7';
+    const attributionBackground = 'rgba(255, 255, 255, 0.86)';
+    const attributionColor = '#475569';
 
     return `
       <!DOCTYPE html>
@@ -59,7 +57,7 @@ const LeafletMap: React.FC<LeafletMapProps> = ({ places, onRegionChange }) => {
               border-radius: 8px 0 0 0;
               padding: 3px 7px;
             }
-            .leaflet-control-attribution a { color: ${isDark ? '#7dd3fc' : '#0f766e'} !important; }
+            .leaflet-control-attribution a { color: #0f766e !important; }
           </style>
         </head>
         <body>
@@ -122,7 +120,6 @@ const LeafletMap: React.FC<LeafletMapProps> = ({ places, onRegionChange }) => {
             });
 
             setTimeout(() => {
-              if (window.updateMarkers) window.updateMarkers(${JSON.stringify(places)});
               const bounds = map.getBounds();
               window.ReactNativeWebView.postMessage(JSON.stringify({
                 type: 'moveend',
@@ -136,9 +133,9 @@ const LeafletMap: React.FC<LeafletMapProps> = ({ places, onRegionChange }) => {
         </body>
       </html>
     `;
-  }, [isDark, places]);
+  }, []);
 
-  useEffect(() => {
+  const syncMarkers = useCallback(() => {
     if (webViewRef.current && webViewAvailable) {
       webViewRef.current.injectJavaScript(`
         if (window.updateMarkers) {
@@ -148,6 +145,10 @@ const LeafletMap: React.FC<LeafletMapProps> = ({ places, onRegionChange }) => {
       `);
     }
   }, [places]);
+
+  useEffect(() => {
+    syncMarkers();
+  }, [syncMarkers]);
 
   if (!webViewAvailable || !WebViewComponent) {
     return (
@@ -172,7 +173,7 @@ const LeafletMap: React.FC<LeafletMapProps> = ({ places, onRegionChange }) => {
   }
 
   const WebView = WebViewComponent;
-  const mapBackground = isDark ? '#111827' : '#eef2f7';
+  const mapBackground = '#eef2f7';
 
   return (
     <View
@@ -182,8 +183,9 @@ const LeafletMap: React.FC<LeafletMapProps> = ({ places, onRegionChange }) => {
       <WebView
         ref={webViewRef}
         originWhitelist={['*']}
-        key={isDark ? 'dark-map' : 'light-map'}
+        key="leaflet-map"
         source={{ html: htmlContent }}
+        onLoadEnd={syncMarkers}
         onMessage={(event: any) => {
           try {
             const data = JSON.parse(event.nativeEvent.data);

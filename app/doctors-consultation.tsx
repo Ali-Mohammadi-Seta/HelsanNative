@@ -1,11 +1,11 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Linking, Text, TouchableOpacity, View } from 'react-native';
+import { Linking, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import { useLocalSearchParams } from 'expo-router';
 import { WebView, WebViewMessageEvent, WebViewNavigation } from 'react-native-webview';
 import type { WebView as WebViewType } from 'react-native-webview';
-import { BackHeader } from '@/components';
+import { BackHeader, SkeletonBox } from '@/components';
 import config from '@/config';
 import { useDirection } from '@/lib/hooks/useDirection';
 import { useTheme } from '@/styles/theme';
@@ -203,7 +203,7 @@ export default function DoctorsConsultationScreen() {
             >
               {getHostName(currentUrl)}
             </Text>
-            {isLoading && <ActivityIndicator size="small" color={colors.primary} />}
+            {isLoading && <SkeletonBox width={16} height={16} radius={8} />}
           </View>
 
           <TouchableOpacity onPress={reload} className="w-10 h-10 items-center justify-center rounded-full">

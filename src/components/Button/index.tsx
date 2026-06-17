@@ -1,25 +1,30 @@
 // src/components/Button/index.tsx
 import { useDirection } from '@/lib/hooks/useDirection';
-import { useTheme } from '@/styles/theme';
-import React, { ReactNode } from 'react';
+import { useTheme, shadows, gradients } from '@/styles/theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import React, { ReactNode, useCallback } from 'react';
 import {
   ActivityIndicator,
   Text,
   TextStyle,
-  TouchableOpacity,
-  TouchableOpacityProps,
+  ViewStyle,
+  Pressable,
   View,
-  ViewStyle
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
 
 type BtnType = 'primary' | 'secondary' | 'danger';
 type BtnVariant = 'solid' | 'text' | 'link' | 'outline' | 'primary';
 type BtnSize = 'large' | 'default' | 'small';
 type IconPosition = 'left' | 'right';
 
-interface CustomButtonProps extends Omit<TouchableOpacityProps, 'style'> {
+interface CustomButtonProps {
   children?: ReactNode;
-  title?: string; // For backward compatibility
+  title?: string;
   type?: BtnType;
   variant?: BtnVariant;
   size?: BtnSize;
@@ -27,11 +32,14 @@ interface CustomButtonProps extends Omit<TouchableOpacityProps, 'style'> {
   iconPosition?: IconPosition;
   loading?: boolean;
   disabled?: boolean;
-  className?: string; // For NativeWind classes
+  className?: string;
   style?: ViewStyle;
   textStyle?: TextStyle;
   fullWidth?: boolean;
+  onPress?: () => void;
 }
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 const CustomButton: React.FC<CustomButtonProps> = ({
   children,
@@ -48,22 +56,35 @@ const CustomButton: React.FC<CustomButtonProps> = ({
   textStyle,
   fullWidth = false,
   onPress,
-  ...rest
 }) => {
   const { colors, isDark } = useTheme();
   const direction = useDirection();
   const isDisabled = disabled || loading;
 
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handlePressIn = useCallback(() => {
+    scale.value = withSpring(0.965, { damping: 15, stiffness: 200 });
+  }, [scale]);
+
+  const handlePressOut = useCallback(() => {
+    scale.value = withSpring(1, { damping: 15, stiffness: 200 });
+  }, [scale]);
+
   // Size configurations
   const sizeConfig = {
-    large: { height: 48, paddingHorizontal: 16, fontSize: 16, gap: 8 },
-    default: { height: 40, paddingHorizontal: 16, fontSize: 14, gap: 8 },
-    small: { height: 32, paddingHorizontal: 12, fontSize: 12, gap: 6 },
+    large: { height: 52, paddingHorizontal: 20, fontSize: 16, gap: 10, borderRadius: 16 },
+    default: { height: 44, paddingHorizontal: 16, fontSize: 14, gap: 8, borderRadius: 14 },
+    small: { height: 34, paddingHorizontal: 12, fontSize: 12, gap: 6, borderRadius: 12 },
   };
 
   const currentSize = sizeConfig[size];
 
-  // Normalize variant: 'primary' means 'solid', 'outline' is outline style
+  // Normalize variant
   const normalizedVariant = variant === 'primary' ? 'solid' : variant;
 
   // Color configurations
@@ -71,80 +92,70 @@ const CustomButton: React.FC<CustomButtonProps> = ({
     if (normalizedVariant === 'solid') {
       switch (type) {
         case 'primary':
-          return {
-            bg: isDark ? colors.primary : '#16a34a',
-            text: '#ffffff',
-          };
+          return { bg: colors.primary, text: '#ffffff', gradient: true };
         case 'secondary':
-          return {
-            bg: isDark ? '#3b82f6' : '#6366f1',
-            text: '#ffffff',
-          };
+          return { bg: isDark ? '#3b82f6' : '#6366f1', text: '#ffffff', gradient: false };
         case 'danger':
-          return {
-            bg: '#dc2626',
-            text: '#ffffff',
-          };
+          return { bg: '#dc2626', text: '#ffffff', gradient: false };
       }
     }
 
-    // Outline variant
     if (normalizedVariant === 'outline') {
       return {
         bg: 'transparent',
-        text: isDark ? colors.primary : '#16a34a',
-        border: isDark ? colors.primary : '#16a34a',
+        text: colors.primary,
+        border: colors.primary,
+        gradient: false,
       };
     }
 
     // Text/Link variants
     switch (type) {
       case 'primary':
-        return { bg: 'transparent', text: isDark ? '#22c55e' : '#16a34a' };
+        return { bg: 'transparent', text: colors.primary, gradient: false };
       case 'secondary':
-        return { bg: 'transparent', text: isDark ? '#60a5fa' : '#6366f1' };
+        return { bg: 'transparent', text: isDark ? '#60a5fa' : '#6366f1', gradient: false };
       case 'danger':
-        return { bg: 'transparent', text: '#dc2626' };
+        return { bg: 'transparent', text: '#dc2626', gradient: false };
     }
   };
 
   const colorScheme = getColors();
+  const useGradient = normalizedVariant === 'solid' && type === 'primary' && !isDisabled;
 
-  // Styles
+  // Container style
   const containerStyle: ViewStyle = {
     height: currentSize.height,
     paddingHorizontal: currentSize.paddingHorizontal,
-    borderRadius: 16,
+    borderRadius: currentSize.borderRadius,
     flexDirection: iconPosition === 'left' ? 'row' : 'row-reverse',
     alignItems: 'center',
     justifyContent: 'center',
     gap: currentSize.gap,
-    backgroundColor: normalizedVariant === 'solid' ? colorScheme.bg : 'transparent',
-    opacity: isDisabled ? 0.6 : 1,
-    ...(fullWidth && { width: '100%' }),
+    backgroundColor: normalizedVariant === 'solid' && !useGradient ? colorScheme.bg : 'transparent',
+    opacity: isDisabled ? 0.5 : 1,
+    overflow: 'hidden' as const,
+    ...(fullWidth && { width: '100%' as any }),
     ...(normalizedVariant === 'outline' && {
-      borderWidth: 1,
+      borderWidth: 1.5,
       borderColor: (colorScheme as any).border || colorScheme.text,
     }),
   };
 
+  const shadowStyle = normalizedVariant === 'solid' && !isDisabled
+    ? (type === 'primary' ? shadows.colored(colors.primary) : shadows.md)
+    : shadows.none;
+
   const textStyleComputed: TextStyle = {
     color: colorScheme.text,
     fontSize: currentSize.fontSize,
-    fontFamily: 'IRANSans-Medium',
+    fontFamily: 'IRANSans-Bold',
     textAlign: 'center',
     writingDirection: direction.dir,
   };
 
-  return (
-    <TouchableOpacity
-      {...rest}
-      onPress={isDisabled ? undefined : onPress}
-      disabled={isDisabled}
-      activeOpacity={0.7}
-      style={[containerStyle, style]}
-      className={className}
-    >
+  const innerContent = (
+    <>
       {loading && (
         <ActivityIndicator
           size="small"
@@ -152,15 +163,37 @@ const CustomButton: React.FC<CustomButtonProps> = ({
           style={{ marginLeft: direction.isRTL ? 4 : 0, marginRight: direction.isRTL ? 0 : 4 }}
         />
       )}
-
       {icon && !loading && <View>{icon}</View>}
-
       {(children || title) && (
         <Text style={[textStyleComputed, textStyle]}>
           {children || title}
         </Text>
       )}
-    </TouchableOpacity>
+    </>
+  );
+
+  return (
+    <AnimatedPressable
+      onPress={isDisabled ? undefined : onPress}
+      onPressIn={isDisabled ? undefined : handlePressIn}
+      onPressOut={isDisabled ? undefined : handlePressOut}
+      disabled={isDisabled}
+      style={[animatedStyle, shadowStyle, !useGradient && containerStyle, style]}
+      className={className}
+    >
+      {useGradient ? (
+        <LinearGradient
+          colors={isDark ? gradients.primaryButtonDark : gradients.primaryButton}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[containerStyle, { backgroundColor: 'transparent' }]}
+        >
+          {innerContent}
+        </LinearGradient>
+      ) : (
+        <>{!useGradient && innerContent}</>
+      )}
+    </AnimatedPressable>
   );
 };
 

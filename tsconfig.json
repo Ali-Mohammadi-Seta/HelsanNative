@@ -50,6 +50,7 @@
   ],
   "exclude": [
     "node_modules",
+    "helsan-front-ts-dev",
     "helsan-front-ts",
     "salam-consultation-front-dev",
     "salam-react-ts"

@@ -1,12 +1,13 @@
 import AppProviders from '@/providers/AppProviders';
 import '@/styles/global.css';
+import AppToast from '@/components/Toast/AppToast';
+import { useDirection } from '@/lib/hooks/useDirection';
 import { useTheme } from '@/styles/theme';
-import { Slot } from 'expo-router';
+import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { I18nManager, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import Toast from 'react-native-toast-message';
 
 // The app supports Persian and English in the same binary. React Native's
 // process-wide RTL switch requires a restart and leaks into the wrong locale,
@@ -26,14 +27,20 @@ export default function RootLayout() {
 }
 
 function RootLayoutContent() {
-  const { isDark } = useTheme();
+  const { colors, isDark } = useTheme();
+  const direction = useDirection();
 
-  // Apply dark class to root View for NativeWind
   return (
     <View className={`flex-1 ${isDark ? 'dark' : ''}`}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
-      <Slot />
-      <Toast />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          animation: direction.isRTL ? 'slide_from_left' : 'slide_from_right',
+          contentStyle: { backgroundColor: colors.background },
+        }}
+      />
+      <AppToast />
     </View>
   );
 }

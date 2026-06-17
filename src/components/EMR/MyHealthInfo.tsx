@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, ScrollView, Text, ActivityIndicator } from 'react-native';
+import { View, ScrollView, Text } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/styles/theme';
 import { useGetUserHealthInfo } from '@/lib/hooks/emr/useGetUserHealthInfo';
@@ -9,6 +9,7 @@ import MedicationsCard from './components/MedicationsCard';
 import HealthSummary from './components/HealthSummary';
 import VitalSignCard from './components/VitalSignCard';
 import { useGetEmrServices } from '@/lib/hooks/auth/useGetEmrServices';
+import { SkeletonList } from '@/components/Skeleton';
 
 const MyHealthInfo: React.FC = () => {
   const { t } = useTranslation();
@@ -20,8 +21,8 @@ const MyHealthInfo: React.FC = () => {
 
   if (isLoadingHealth || isGettingServices) {
     return (
-      <View className="flex-1 justify-center items-center py-20">
-        <ActivityIndicator size="large" className="text-primary" />
+      <View className="flex-1 p-4">
+        <SkeletonList count={5} rows={3} avatar />
       </View>
     );
   }

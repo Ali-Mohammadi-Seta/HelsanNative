@@ -1,4 +1,4 @@
-import { Button, Header } from '@/components';
+import { Button, Header, SkeletonList } from '@/components';
 import { useLogout, useUserProfile } from '@/lib/api/useAuth';
 import { removeTokens } from '@/lib/auth/tokenStorage';
 import { useDirection } from '@/lib/hooks/useDirection';
@@ -34,7 +34,7 @@ export default function ProfileScreen() {
   const { width } = useWindowDimensions();
   const dispatch = useDispatch();
   const { isLoggedIn } = useSelector((state: RootState) => state.auth);
-  const { data: userProfile } = useUserProfile(isLoggedIn);
+  const { data: userProfile, isLoading: isProfileLoading } = useUserProfile(isLoggedIn);
   const logoutMutation = useLogout();
   const [avatarFailed, setAvatarFailed] = useState(false);
   const isCompact = width < 380;
@@ -152,7 +152,7 @@ export default function ProfileScreen() {
             style={{ backgroundColor: isDark ? colors.card : '#ffffff', borderColor: colors.border }}
           >
             <LinearGradient
-              colors={isDark ? ['#0f2f24', '#123c31'] : ['#dcfce7', '#f0fdfa']}
+              colors={isDark ? ['#0d1f17', '#132b1f'] : ['#ecfdf5', '#f0fdfa']}
               className="px-5 pt-7 pb-6"
             >
               <View className="items-center">
@@ -204,6 +204,22 @@ export default function ProfileScreen() {
     );
   }
 
+  if (isProfileLoading) {
+    return (
+      <View className="flex-1" style={{ backgroundColor: colors.background }}>
+        <Header title={text.account} />
+        <ScrollView
+          className="flex-1"
+          style={{ backgroundColor: isDark ? colors.background : colors.surface }}
+          contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
+          showsVerticalScrollIndicator={false}
+        >
+          <SkeletonList count={6} rows={2} avatar />
+        </ScrollView>
+      </View>
+    );
+  }
+
   return (
     <View className="flex-1" style={{ backgroundColor: colors.background }}>
       <Header title={text.account} />
@@ -215,7 +231,7 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}
       >
         <LinearGradient
-          colors={isDark ? ['#0f2f24', '#1f2623'] : ['#dcfce7', '#ffffff']}
+          colors={isDark ? ['#0d1f17', '#162019'] : ['#ecfdf5', '#ffffff']}
           className="rounded-3xl p-5 mb-5 overflow-hidden border"
           style={{ borderColor: colors.border }}
         >

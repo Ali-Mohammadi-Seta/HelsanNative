@@ -6,24 +6,24 @@ import { useAppSelector } from '@/redux/hooks';
 // Define theme values
 const themes = {
   light: vars({
-    '--color-background': '255 255 255',
-    '--color-surface': '248 250 248',
+    '--color-background': '248 250 249',
+    '--color-surface': '241 245 243',
     '--color-card': '255 255 255',
-    '--color-foreground': '26 26 26',
+    '--color-foreground': '17 24 39',
     '--color-foreground-secondary': '75 85 99',
-    '--color-foreground-tertiary': '107 114 128',
-    '--color-border': '209 213 219',
-    '--color-divider': '229 231 235',
+    '--color-foreground-tertiary': '156 163 175',
+    '--color-border': '229 231 235',
+    '--color-divider': '243 244 246',
   }),
   dark: vars({
-    '--color-background': '15 21 18',
-    '--color-surface': '26 31 28',
-    '--color-card': '31 38 35',
-    '--color-foreground': '240 244 241',
-    '--color-foreground-secondary': '167 179 170',
-    '--color-foreground-tertiary': '122 133 125',
-    '--color-border': '45 56 49',
-    '--color-divider': '38 48 41',
+    '--color-background': '12 20 16',
+    '--color-surface': '17 26 21',
+    '--color-card': '22 32 25',
+    '--color-foreground': '240 253 244',
+    '--color-foreground-secondary': '148 163 184',
+    '--color-foreground-tertiary': '100 116 139',
+    '--color-border': '30 58 46',
+    '--color-divider': '23 43 33',
   }),
 };
 

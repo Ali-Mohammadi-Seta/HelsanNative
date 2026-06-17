@@ -1,4 +1,4 @@
-import { BackHeader, Button, FloatingInput } from '@/components';
+import { BackHeader, Button, FloatingInput, SkeletonCard, SkeletonList } from '@/components';
 import config from '@/config';
 import {
   getProvidersListApi,
@@ -13,15 +13,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
+import { FlashList } from '@shopify/flash-list';
 import {
-  ActivityIndicator,
-  FlatList,
   Image,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { MotiView } from 'moti';
 
 type FilterState = {
   name: string;
@@ -191,6 +191,7 @@ export default function ProvidersDirectory({ providerType }: { providerType: Pro
     hasNextPage,
     isFetchingNextPage,
     isLoading,
+    isError,
     refetch,
   } = useInfiniteQuery<ProviderListResponse>({
     queryKey: ['providersDirectory', providerType, queryFilters],
@@ -229,8 +230,9 @@ export default function ProvidersDirectory({ providerType }: { providerType: Pro
     <View className="flex-1" style={{ backgroundColor: isDark ? colors.background : '#f8fafc' }}>
       <BackHeader title={t(copy.titleKey)} />
 
-      <FlatList
+      <FlashList
         data={providers}
+        estimatedItemSize={150}
         keyExtractor={(item, index) => `${getProviderId(item) || item.medicalId || item.licenseNumber || 'provider'}-${index}`}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ padding: 16, paddingBottom: 34 }}
@@ -290,6 +292,8 @@ export default function ProvidersDirectory({ providerType }: { providerType: Pro
                     value={filters[filter.key]}
                     onChangeText={(text) => setFilters((current) => ({ ...current, [filter.key]: text }))}
                     dir={direction.dir}
+                    type={filter.key === 'licenseNumber' ? 'number' : 'text'}
+                    localizeDigits={false}
                   />
                 ))}
 
@@ -313,37 +317,40 @@ export default function ProvidersDirectory({ providerType }: { providerType: Pro
             </View>
           </View>
         }
-        renderItem={({ item }) => (
+        renderItem={({ item, index }) => (
           <ProviderCard
             provider={item}
             providerType={providerType}
             copy={copy}
+            index={index}
             onConsultation={() => openConsultation(item)}
           />
         )}
         ListEmptyComponent={
-          <View className="items-center justify-center rounded-3xl border border-dashed p-8 mt-3" style={{ borderColor: colors.border }}>
-            {isLoading ? (
-              <ActivityIndicator color={copy.accent} />
-            ) : (
-              <>
+          isLoading ? (
+            <SkeletonList count={5} rows={3} avatar />
+          ) : (
+            <View className="items-center justify-center rounded-3xl border border-dashed p-8 mt-3" style={{ borderColor: colors.border }}>
+              {isError ? (
+                <Ionicons name="cloud-offline-outline" size={34} color={colors.textTertiary} />
+              ) : (
                 <Ionicons name="search-outline" size={34} color={colors.textTertiary} />
-                <Text style={{ color: colors.text, fontFamily: 'IRANSans-Bold', fontSize: 15, marginTop: 12, ...direction.centeredText }}>
-                  {t(copy.emptyKey)}
+              )}
+              <Text style={{ color: colors.text, fontFamily: 'IRANSans-Bold', fontSize: 15, marginTop: 12, ...direction.centeredText }}>
+                {isError ? t('tryAgain') : t(copy.emptyKey)}
+              </Text>
+              <TouchableOpacity onPress={() => refetch()} className="mt-4 px-4 py-2 rounded-full" style={{ backgroundColor: copy.soft }}>
+                <Text style={{ color: copy.accent, fontFamily: 'IRANSans-Bold', fontSize: 12 }}>
+                  {t('providerDirectory.tryAgain')}
                 </Text>
-                <TouchableOpacity onPress={() => refetch()} className="mt-4 px-4 py-2 rounded-full" style={{ backgroundColor: copy.soft }}>
-                  <Text style={{ color: copy.accent, fontFamily: 'IRANSans-Bold', fontSize: 12 }}>
-                    {t('providerDirectory.tryAgain')}
-                  </Text>
-                </TouchableOpacity>
-              </>
-            )}
-          </View>
+              </TouchableOpacity>
+            </View>
+          )
         }
         ListFooterComponent={
           isFetchingNextPage ? (
-            <View className="py-5">
-              <ActivityIndicator color={copy.accent} />
+            <View className="py-2">
+              <SkeletonCard rows={2} avatar />
             </View>
           ) : null
         }
@@ -360,11 +367,13 @@ function ProviderCard({
   provider,
   providerType,
   copy,
+  index,
   onConsultation,
 }: {
   provider: ProviderListItem;
   providerType: ProviderListType;
   copy: ProviderCopy;
+  index: number;
   onConsultation: () => void;
 }) {
   const { t } = useTranslation();
@@ -381,18 +390,20 @@ function ProviderCard({
   const showAvatar = Boolean(avatarUri) && !avatarFailed;
 
   return (
-    <View
+    <MotiView
+      from={{ opacity: 0, translateY: 20 }}
+      animate={{ opacity: 1, translateY: 0 }}
+      transition={{ type: 'timing', duration: 250, delay: (index % PAGE_SIZE) * 30 }}
       className="rounded-3xl mb-3 overflow-hidden border"
       style={{
         backgroundColor: isDark ? colors.card : '#ffffff',
-        borderColor: isDark ? colors.border : `${copy.accent}26`,
+        borderColor: isDark ? colors.border : '#e5e7eb',
       }}
     >
-      <View className="h-1.5" style={{ backgroundColor: copy.accent }} />
       <View className="p-4">
         <View className="items-center" style={direction.row}>
           <View
-            className="w-16 h-16 rounded-2xl overflow-hidden items-center justify-center"
+            className="w-16 h-16 rounded-2xl items-center justify-center overflow-hidden"
             style={{ backgroundColor: copy.soft }}
           >
             {showAvatar ? (
@@ -464,7 +475,7 @@ function ProviderCard({
           {t(copy.actionKey)}
         </Button>
       </View>
-    </View>
+    </MotiView>
   );
 }
 

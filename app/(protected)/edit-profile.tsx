@@ -1,25 +1,24 @@
 // app/(protected)/edit-profile.tsx
-import { BackHeader, Button, FloatingInput, FloatingSelect, Modal } from '@/components';
+import { BackHeader, Button, FloatingInput, FloatingSelect, Modal, SkeletonList } from '@/components';
 import { upgradeUserRoleApi } from '@/lib/api/apiService';
 import { usePotentialRoles, useUserProfile } from '@/lib/api/useAuth';
 import { useDirection } from '@/lib/hooks/useDirection';
+import { showToast } from '@/lib/toast/showToast';
 import { useTheme } from '@/styles/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import React, { useMemo, useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import Toast from 'react-native-toast-message';
 
 type UpgradeRole = 'doctor' | 'psychologist';
-
-const onlyDigits = (value: string) => value.replace(/[^\d]/g, '');
 
 export default function EditProfileScreen() {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const direction = useDirection();
   const queryClient = useQueryClient();
+  const language = direction.isRTL ? 'fa' : 'en';
   const { data: userProfile, isLoading } = useUserProfile(true);
   const { data: potentialRoles } = usePotentialRoles();
   const [upgradeOpen, setUpgradeOpen] = useState(false);
@@ -88,12 +87,12 @@ export default function EditProfileScreen() {
   const upgradeMutation = useMutation({
     mutationFn: ({ role, payload }: { role: UpgradeRole; payload: Record<string, string> }) =>
       upgradeUserRoleApi(role, payload),
-    onSuccess: () => {
+    onSuccess: (result) => {
       setUpgradeOpen(false);
       queryClient.invalidateQueries({ queryKey: ['userProfile'] });
-      Toast.show({ type: 'success', text1: text.success });
+      showToast({ type: 'success', message: result, fallback: text.success, language });
     },
-    onError: () => Toast.show({ type: 'error', text1: text.failed }),
+    onError: (error) => showToast({ type: 'error', message: error, fallback: text.failed, language }),
   });
 
   const profileFields = [
@@ -106,9 +105,9 @@ export default function EditProfileScreen() {
 
   const handleSubmitUpgrade = () => {
     if (selectedRole === 'doctor') {
-      const code = onlyDigits(medicalCode);
+      const code = medicalCode.trim();
       if (!code) {
-        Toast.show({ type: 'error', text1: text.required });
+        showToast({ type: 'error', fallback: text.required, language });
         return;
       }
       upgradeMutation.mutate({ role: selectedRole, payload: { medicalCode: code } });
@@ -116,14 +115,14 @@ export default function EditProfileScreen() {
     }
 
     if (!licenseNumber || !field || !educationDegree || !educationDegreeId || !province || !city || !expireDate) {
-      Toast.show({ type: 'error', text1: text.required });
+      showToast({ type: 'error', fallback: text.required, language });
       return;
     }
 
     upgradeMutation.mutate({
       role: selectedRole,
       payload: {
-        licenseNumber: onlyDigits(licenseNumber),
+        licenseNumber: licenseNumber.trim(),
         field: field.trim(),
         educationDegree,
         educationDegreeId: educationDegreeId.trim(),
@@ -138,8 +137,10 @@ export default function EditProfileScreen() {
     return (
       <View className="flex-1">
         <BackHeader title={text.profile} />
-        <View className={`flex-1 justify-center items-center ${isDark ? 'bg-background' : 'bg-white'}`}>
-          <ActivityIndicator size="large" color={colors.primary} />
+        <View className={`flex-1 ${isDark ? 'bg-background' : 'bg-white'}`}>
+          <View className="p-4">
+            <SkeletonList count={5} rows={2} avatar />
+          </View>
         </View>
       </View>
     );
@@ -220,8 +221,8 @@ export default function EditProfileScreen() {
             label={text.medicalCode}
             value={medicalCode}
             onChangeText={setMedicalCode}
-            type="number"
-            dir="ltr"
+            placeholder={direction.isRTL ? 'مثلا الف-۱۲۳۴۵' : 'Example: A-12345'}
+            dir={direction.dir}
           />
         ) : (
           <>

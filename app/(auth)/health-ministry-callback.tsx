@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import Toast from 'react-native-toast-message';
 import { useDispatch } from 'react-redux';
 import {
   applyAuthResponse,
@@ -9,6 +8,7 @@ import {
   submitHealthMinistryCode,
 } from '@/lib/auth/sso';
 import type { AppDispatch } from '@/redux/store';
+import { showToast } from '@/lib/toast/showToast';
 
 export default function HealthMinistryCallback() {
   const params = useLocalSearchParams<{ code?: string }>();
@@ -17,10 +17,7 @@ export default function HealthMinistryCallback() {
   useEffect(() => {
     const handleCallback = async () => {
       if (!params.code) {
-        Toast.show({
-          type: 'error',
-          text1: 'Authorization code missing',
-        });
+        showToast({ type: 'error', message: 'Authorization code missing', fallback: 'Error', language: 'en' });
         router.replace('/(tabs)/home');
         return;
       }
@@ -29,10 +26,7 @@ export default function HealthMinistryCallback() {
         const data = await submitHealthMinistryCode(params.code);
         await applyAuthResponse(data, dispatch);
 
-        Toast.show({
-          type: 'success',
-          text1: (data as any)?.messageFa || 'Success',
-        });
+        showToast({ type: 'success', message: data, fallback: 'Success', language: 'fa' });
 
         const redirectUrl = getSsoRedirectUrl(data);
         if (redirectUrl) {
@@ -40,10 +34,7 @@ export default function HealthMinistryCallback() {
           return;
         }
       } catch (error: any) {
-        Toast.show({
-          type: 'error',
-          text1: error.response?.data?.messageFa || 'Error',
-        });
+        showToast({ type: 'error', message: error, fallback: 'Error', language: 'fa' });
       }
 
       router.replace('/(tabs)/home');

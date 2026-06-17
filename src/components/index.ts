@@ -9,6 +9,7 @@ export { default as Header } from './Header';
 export { default as CategoryCard } from './CategoryCard';
 export { default as BackHeader } from './BackHeader';
 export { default as DatePickerJalali } from './DatePicker/DatePickerJalali';
+export { SkeletonBox, SkeletonCard, SkeletonList } from './Skeleton';
 export { default as Questionnaire } from './EMR/Questionnaire';
 export { default as MyHealthInfo } from './EMR/MyHealthInfo';
 

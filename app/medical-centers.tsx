@@ -4,7 +4,9 @@ import { useTheme } from '@/styles/theme';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
+import { MotiView } from 'moti';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 type Category = 'hospitals' | 'clinics' | 'privateClinics';
 
@@ -87,17 +89,23 @@ export default function MedicalCentersScreen() {
           </Text>
         </View>
 
-        <FlatList
+        <FlashList
           data={currentData}
+          estimatedItemSize={120}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ padding: 16, paddingTop: 8, paddingBottom: 32 }}
           showsVerticalScrollIndicator={false}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              className="rounded-3xl p-4 mb-3"
-              style={{ backgroundColor: isDark ? colors.card : '#ffffff' }}
-              activeOpacity={0.75}
+          renderItem={({ item, index }) => (
+            <MotiView
+              from={{ opacity: 0, translateY: 15 }}
+              animate={{ opacity: 1, translateY: 0 }}
+              transition={{ type: 'timing', duration: 250, delay: index * 40 }}
             >
+              <TouchableOpacity
+                className="rounded-3xl p-4 mb-3"
+                style={{ backgroundColor: isDark ? colors.card : '#ffffff' }}
+                activeOpacity={0.75}
+              >
               <View className="items-start" style={direction.row}>
                 <View className="w-20 h-24 rounded-2xl justify-center items-center bg-primary/10">
                   <Ionicons name="business-outline" size={38} color={colors.primary} />
@@ -122,7 +130,8 @@ export default function MedicalCentersScreen() {
                   </View>
                 </View>
               </View>
-            </TouchableOpacity>
+              </TouchableOpacity>
+            </MotiView>
           )}
         />
       </View>

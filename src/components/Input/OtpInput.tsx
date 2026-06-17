@@ -1,5 +1,6 @@
 // src/components/Input/OtpInput.tsx
-import { useTheme } from '@/styles/theme';
+import { toEnglishDigits } from '@/lib/format/digits';
+import { shadows, useTheme } from '@/styles/theme';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   StyleSheet,
@@ -8,14 +9,13 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-
-const toEnglishDigits = (str: string): string => {
-  const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-  const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
-
-  return str.replace(/[۰-۹]/g, (w) => persianNumbers.indexOf(w).toString())
-    .replace(/[٠-٩]/g, (w) => arabicNumbers.indexOf(w).toString());
-};
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 
 interface OtpInputProps {
   length?: number;
@@ -25,8 +25,49 @@ interface OtpInputProps {
   autoFocus?: boolean;
   dir?: 'rtl' | 'ltr';
   containerStyle?: ViewStyle;
-  boxStyle?: TextStyle; // ✅ FIX: Changed from ViewStyle to TextStyle
+  boxStyle?: TextStyle;
   textStyle?: TextStyle;
+}
+
+function OtpCell({
+  digit,
+  isFocused,
+}: {
+  digit: string;
+  isFocused: boolean;
+}) {
+  const { colors, isDark } = useTheme();
+  const scale = useSharedValue(1);
+
+  useEffect(() => {
+    if (digit) {
+      scale.value = withSequence(
+        withTiming(1.05, { duration: 90 }),
+        withSpring(1, { damping: 18, stiffness: 160 }),
+      );
+    }
+  }, [digit, scale]);
+
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <Animated.View
+      style={[
+        animStyle,
+        styles.cellContainer,
+        {
+          backgroundColor: digit
+            ? isDark ? 'rgba(34, 197, 94, 0.10)' : 'rgba(22, 163, 74, 0.07)'
+            : isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.82)',
+          borderColor: digit || isFocused ? colors.primary : colors.inputBorder,
+          borderWidth: isFocused || digit ? 1.5 : 1,
+        },
+        digit ? shadows.sm : {},
+      ]}
+    />
+  );
 }
 
 const OtpInput: React.FC<OtpInputProps> = ({
@@ -35,108 +76,96 @@ const OtpInput: React.FC<OtpInputProps> = ({
   onChangeText,
   disabled = false,
   autoFocus = false,
-  dir = 'ltr',
   containerStyle,
   boxStyle,
   textStyle,
 }) => {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const inputRefs = useRef<(TextInput | null)[]>([]);
   const [digits, setDigits] = useState<string[]>(Array(length).fill(''));
+  const [focusedIndex, setFocusedIndex] = useState(-1);
 
   useEffect(() => {
     const cleanValue = toEnglishDigits(value).replace(/\D/g, '').slice(0, length);
-    const newDigits = Array.from({ length }, (_, i) => cleanValue[i] || '');
-    setDigits(newDigits);
+    setDigits(Array.from({ length }, (_, index) => cleanValue[index] || ''));
   }, [value, length]);
+
+  const emitDigits = (nextDigits: string[]) => {
+    setDigits(nextDigits);
+    onChangeText?.(nextDigits.join(''));
+  };
 
   const handleChange = (text: string, index: number) => {
     const convertedText = toEnglishDigits(text).replace(/\D/g, '');
 
     if (!convertedText) {
-      const newDigits = [...digits];
-      newDigits[index] = '';
-      setDigits(newDigits);
-      onChangeText?.(newDigits.join(''));
+      const nextDigits = [...digits];
+      nextDigits[index] = '';
+      emitDigits(nextDigits);
       return;
     }
 
-    // Handle paste
     if (convertedText.length > 1) {
-      const newDigits = [...digits];
-      for (let i = 0; i < convertedText.length && index + i < length; i++) {
-        newDigits[index + i] = convertedText[i];
+      const nextDigits = [...digits];
+      for (let i = 0; i < convertedText.length && index + i < length; i += 1) {
+        nextDigits[index + i] = convertedText[i];
       }
-      setDigits(newDigits);
-      onChangeText?.(newDigits.join(''));
-
-      const nextIndex = Math.min(index + convertedText.length, length - 1);
-      inputRefs.current[nextIndex]?.focus();
+      emitDigits(nextDigits);
+      inputRefs.current[Math.min(index + convertedText.length, length - 1)]?.focus();
       return;
     }
 
-    // Single digit
-    const newDigits = [...digits];
-    newDigits[index] = convertedText[0];
-    setDigits(newDigits);
-    onChangeText?.(newDigits.join(''));
+    const nextDigits = [...digits];
+    nextDigits[index] = convertedText[0];
+    emitDigits(nextDigits);
 
     if (index < length - 1) {
       inputRefs.current[index + 1]?.focus();
     }
   };
 
-  const handleKeyPress = (e: any, index: number) => {
-    if (e.nativeEvent.key === 'Backspace') {
-      if (!digits[index] && index > 0) {
-        const newDigits = [...digits];
-        newDigits[index - 1] = '';
-        setDigits(newDigits);
-        onChangeText?.(newDigits.join(''));
-        inputRefs.current[index - 1]?.focus();
-      }
-    }
+  const handleKeyPress = (event: any, index: number) => {
+    if (event.nativeEvent.key !== 'Backspace') return;
+    if (digits[index] || index <= 0) return;
+
+    const nextDigits = [...digits];
+    nextDigits[index - 1] = '';
+    emitDigits(nextDigits);
+    inputRefs.current[index - 1]?.focus();
   };
 
   return (
-    <View
-      style={[
-        styles.container,
-        { flexDirection: 'row' }, // OTP should ALWAYS be LTR, numbers read left-to-right
-        containerStyle,
-      ]}
-    >
+    <View style={[styles.container, containerStyle]}>
       {Array.from({ length }).map((_, index) => (
-        <TextInput
-          key={index}
-          ref={(ref) => {
-            inputRefs.current[index] = ref;
-          }}
-          value={digits[index]}
-          onChangeText={(text) => handleChange(text, index)}
-          onKeyPress={(e) => handleKeyPress(e, index)}
-          keyboardType="numeric"
-          maxLength={1}
-          editable={!disabled}
-          autoFocus={autoFocus && index === 0}
-          selectTextOnFocus
-          style={[
-            styles.box,
-            {
-              borderBottomColor: digits[index]
-                ? colors.primary
-                : isDark
-                  ? colors.border
-                  : '#e0e0e0',
-              color: isDark ? colors.text : '#000000',
-              fontFamily: 'IRANSans-Medium',
-              writingDirection: 'ltr', // OTP numbers should always be LTR
-              textAlign: 'center',
-            },
-            boxStyle, // ✅ Now correctly typed as TextStyle
-            textStyle,
-          ]}
-        />
+        <View key={index} style={styles.cellWrapper}>
+          <OtpCell digit={digits[index]} isFocused={focusedIndex === index} />
+          <TextInput
+            ref={(ref) => {
+              inputRefs.current[index] = ref;
+            }}
+            value={digits[index]}
+            onChangeText={(text) => handleChange(text, index)}
+            onKeyPress={(event) => handleKeyPress(event, index)}
+            onFocus={() => setFocusedIndex(index)}
+            onBlur={() => setFocusedIndex(-1)}
+            keyboardType="number-pad"
+            maxLength={1}
+            editable={!disabled}
+            autoFocus={autoFocus && index === 0}
+            selectTextOnFocus
+            style={[
+              styles.hiddenInput,
+              {
+                color: colors.text,
+                fontFamily: 'IRANSans-Bold',
+                writingDirection: 'ltr',
+                textAlign: 'center',
+              },
+              boxStyle,
+              textStyle,
+            ]}
+          />
+        </View>
       ))}
     </View>
   );
@@ -146,16 +175,31 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 12,
-    marginVertical: 20,
+    gap: 8,
+    marginVertical: 18,
   },
-  box: {
-    width: 45,
-    height: 50,
-    fontSize: 24,
-    textAlign: 'center',
-    borderBottomWidth: 2,
+  cellWrapper: {
+    height: 54,
+    position: 'relative',
+    width: 44,
+  },
+  cellContainer: {
+    borderRadius: 14,
+    height: 54,
+    left: 0,
+    position: 'absolute',
+    top: 0,
+    width: 44,
+  },
+  hiddenInput: {
     backgroundColor: 'transparent',
+    fontSize: 22,
+    height: 54,
+    left: 0,
+    position: 'absolute',
+    textAlign: 'center',
+    top: 0,
+    width: 44,
   },
 });
 

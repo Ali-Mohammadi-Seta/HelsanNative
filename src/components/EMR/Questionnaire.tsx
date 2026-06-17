@@ -1,6 +1,8 @@
 import Button from '@/components/Button';
 import { useGetQuestionnaireCachedInfo } from '@/lib/hooks/emr/useGetQuestionnaireCachedInfo';
 import { useSaveDoneQuestionnaire } from '@/lib/hooks/emr/useSaveDoneQuestionnaire';
+import { useDirection } from '@/lib/hooks/useDirection';
+import { showToast } from '@/lib/toast/showToast';
 import { useTheme } from '@/styles/theme';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -11,7 +13,6 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import Toast from 'react-native-toast-message';
 
 interface QuestionOption {
   id: number;
@@ -35,6 +36,8 @@ const { width } = Dimensions.get('window');
 const Questionnaire: React.FC = () => {
   const { t } = useTranslation();
   const { isDark } = useTheme();
+  const direction = useDirection();
+  const language = direction.isRTL ? 'fa' : 'en';
   const { cachedInfo } = useGetQuestionnaireCachedInfo();
   const { saveDoneQuestionnaire, isSending } = useSaveDoneQuestionnaire();
 
@@ -117,10 +120,11 @@ const Questionnaire: React.FC = () => {
         {
           onSuccess: (result: any) => {
             if (result?.isSuccess) {
-              Toast.show({
+              showToast({
                 type: 'success',
-                text1: t('success'),
-                text2: t('sentQuess'),
+                message: result,
+                fallback: t('sentQuess'),
+                language,
               });
               setAnswers({} as Answers);
               setCurrentStep(0);
@@ -138,10 +142,11 @@ const Questionnaire: React.FC = () => {
       {
         onSuccess: (result: any) => {
           if (result?.isSuccess) {
-            Toast.show({
+            showToast({
               type: 'success',
-              text1: t('success'),
-              text2: t('q_09'),
+              message: result,
+              fallback: t('q_09'),
+              language,
             });
           }
         },

@@ -12,7 +12,7 @@ export default function ExploreScreen() {
     <View style={{ flex: 1 }}>
       {/* ✅ ADD HEADER */}
       <Header title={t('search')} />
-      
+
       <View style={[styles.container, { backgroundColor: isDark ? colors.background : '#ffffff' }]}>
         <View style={styles.content}>
           <Text style={[styles.subtitle, { color: isDark ? colors.textSecondary : '#666666' }]}>

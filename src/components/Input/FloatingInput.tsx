@@ -15,25 +15,22 @@ import {
   ViewStyle,
 } from 'react-native';
 
-const toEnglishDigits = (str: string): string => {
-  const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-  const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+const PERSIAN_DIGITS = ['\u06f0', '\u06f1', '\u06f2', '\u06f3', '\u06f4', '\u06f5', '\u06f6', '\u06f7', '\u06f8', '\u06f9'];
+const ARABIC_DIGITS = ['\u0660', '\u0661', '\u0662', '\u0663', '\u0664', '\u0665', '\u0666', '\u0667', '\u0668', '\u0669'];
 
-  return str
-    .replace(/[۰-۹]/g, (w) => String(persianNumbers.indexOf(w)))
-    .replace(/[٠-٩]/g, (w) => String(arabicNumbers.indexOf(w)));
-};
+const toEnglishDigits = (str: string): string =>
+  str
+    .replace(/[\u06f0-\u06f9]/g, (char) => String(PERSIAN_DIGITS.indexOf(char)))
+    .replace(/[\u0660-\u0669]/g, (char) => String(ARABIC_DIGITS.indexOf(char)));
 
-const toPersianDigits = (str: string): string => {
-  const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-  return str.replace(/\d/g, (digit) => persianNumbers[Number(digit)] ?? digit);
-};
+const toPersianDigits = (str: string): string =>
+  str.replace(/\d/g, (digit) => PERSIAN_DIGITS[Number(digit)] ?? digit);
 
 const formatPrice = (value: string): string => {
   if (!value) return '';
   const numberValue = Number(value.replace(/,/g, ''));
   if (Number.isNaN(numberValue)) return '';
-  return new Intl.NumberFormat().format(numberValue);
+  return new Intl.NumberFormat('en-US').format(numberValue);
 };
 
 interface FloatingInputProps extends Omit<TextInputProps, 'onChange'> {
@@ -53,6 +50,7 @@ interface FloatingInputProps extends Omit<TextInputProps, 'onChange'> {
   passwordToggle?: boolean;
   floatingLabel?: boolean;
   localizeDigits?: boolean;
+  allowPersian?: boolean;
 }
 
 const FloatingInput: React.FC<FloatingInputProps> = ({
@@ -72,24 +70,26 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
   passwordToggle = false,
   floatingLabel = true,
   localizeDigits,
+  allowPersian: _allowPersian = true,
+  placeholder,
   ...rest
 }) => {
   const { colors, isDark } = useTheme();
   const direction = useDirection();
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [displayValue, setDisplayValue] = useState('');
-  const inputDir = dir ?? direction.dir;
-  const isRTL = inputDir === 'rtl';
-  const shouldLocalizeDigits = localizeDigits ?? direction.isRTL;
+  const labelDir = dir ?? direction.dir;
+  const labelIsRTL = labelDir === 'rtl';
+  const isNumeric = type === 'number' || priceFormatter;
+  const inputDir = isNumeric ? 'ltr' : labelDir;
+  const inputIsRTL = inputDir === 'rtl';
+  const shouldLocalizeDigits = localizeDigits ?? (direction.isRTL && isNumeric);
+  const normalizedValue = isNumeric ? toEnglishDigits(value) : value;
+  const formattedValue = priceFormatter ? formatPrice(normalizedValue) : normalizedValue;
+  const displayValue = shouldLocalizeDigits ? toPersianDigits(formattedValue) : formattedValue;
 
   const labelAnimation = useRef(new Animated.Value(value ? 1 : 0)).current;
-
-  useEffect(() => {
-    const englishValue = toEnglishDigits(value);
-    const formattedValue = priceFormatter ? formatPrice(englishValue) : englishValue;
-    setDisplayValue(shouldLocalizeDigits ? toPersianDigits(formattedValue) : formattedValue);
-  }, [value, priceFormatter, shouldLocalizeDigits]);
+  const focusAnimation = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.timing(labelAnimation, {
@@ -99,22 +99,29 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
     }).start();
   }, [isFocused, value, labelAnimation]);
 
-  const handleChange = (text: string) => {
-    const convertedValue = toEnglishDigits(text);
+  useEffect(() => {
+    Animated.timing(focusAnimation, {
+      toValue: isFocused ? 1 : 0,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
+  }, [isFocused, focusAnimation]);
 
+  const handleChange = (text: string) => {
     if (priceFormatter) {
-      const unformatted = convertedValue.replace(/,/g, '');
+      const unformatted = toEnglishDigits(text).replace(/,/g, '');
       if (!/^\d*$/.test(unformatted)) return;
-      const formattedValue = formatPrice(unformatted);
-      setDisplayValue(shouldLocalizeDigits ? toPersianDigits(formattedValue) : formattedValue);
       onChangeText?.(unformatted);
       return;
     }
 
-    if (type === 'number' && !/^\d*$/.test(convertedValue)) return;
+    if (type === 'number') {
+      const convertedValue = toEnglishDigits(text);
+      onChangeText?.(convertedValue);
+      return;
+    }
 
-    setDisplayValue(shouldLocalizeDigits ? toPersianDigits(convertedValue) : convertedValue);
-    onChangeText?.(convertedValue);
+    onChangeText?.(text);
   };
 
   const labelTop = labelAnimation.interpolate({
@@ -130,26 +137,31 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
   const borderColor = error
     ? colors.error
     : isFocused
-      ? colors.primary
-      : isDark
-        ? colors.border
-        : '#e0e0e0';
+      ? colors.inputBorderFocused
+      : colors.inputBorder;
+
+  const borderWidth = focusAnimation.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 1.5],
+  });
+
+  const labelBackgroundColor = disabled
+    ? isDark
+      ? colors.surface
+      : '#f5f5f5'
+    : colors.inputBackground;
 
   return (
     <View style={[styles.container, containerStyle]}>
-      <View
+      <Animated.View
         style={[
           styles.inputWrapper,
           {
             borderColor,
-            backgroundColor: disabled
-              ? isDark
-                ? '#1a1a1a'
-                : '#f5f5f5'
-              : isDark
-                ? colors.card
-                : colors.background,
-            minHeight: multiline ? 80 : 48,
+            borderWidth,
+            backgroundColor: labelBackgroundColor,
+            minHeight: multiline ? 80 : 52,
+            borderRadius: 14,
           },
         ]}
       >
@@ -163,21 +175,21 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
           multiline={multiline}
           numberOfLines={numberOfLines}
           secureTextEntry={type === 'password' && !showPassword}
-          keyboardType={type === 'number' || priceFormatter ? 'numeric' : 'default'}
+          keyboardType={isNumeric ? 'numeric' : rest.keyboardType ?? 'default'}
           style={[
             styles.input,
             {
-              color: isDark ? colors.text : '#000000',
-              textAlign: isRTL ? 'right' : 'left',
+              color: colors.text,
+              textAlign: inputIsRTL ? 'right' : 'left',
               writingDirection: inputDir,
-              paddingTop: floatingLabel && (isFocused || value) ? 20 : 12,
+              paddingTop: floatingLabel && (isFocused || value) ? 18 : 14,
               fontFamily: 'IRANSans',
             },
             multiline && { textAlignVertical: 'top', paddingTop: 24 },
             inputStyle,
           ]}
-          placeholder={floatingLabel ? undefined : rest.placeholder}
-          placeholderTextColor={isDark ? '#888888' : '#999999'}
+          placeholder={floatingLabel ? (isFocused ? placeholder : undefined) : placeholder}
+          placeholderTextColor={colors.textTertiary}
         />
 
         {floatingLabel && label && (
@@ -191,14 +203,14 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
                   ? colors.error
                   : isFocused
                     ? colors.primary
-                    : isDark
-                      ? '#888888'
-                      : '#666666',
-                backgroundColor: isDark ? colors.card : colors.background,
-                right: isRTL ? 12 : undefined,
-                left: isRTL ? undefined : 12,
+                    : colors.textTertiary,
+                backgroundColor: labelBackgroundColor,
+                right: labelIsRTL ? 12 : undefined,
+                left: labelIsRTL ? undefined : 12,
                 fontFamily: 'IRANSans',
-                writingDirection: inputDir,
+                writingDirection: labelDir,
+                textAlign: labelIsRTL ? 'right' : 'left',
+                zIndex: 2,
               },
               labelStyle,
             ]}
@@ -212,32 +224,40 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
             onPress={() => setShowPassword(!showPassword)}
             style={[
               styles.eyeIcon,
-              { left: isRTL ? 12 : undefined, right: isRTL ? undefined : 12 },
+              { left: labelIsRTL ? 12 : undefined, right: labelIsRTL ? undefined : 12 },
             ]}
           >
             <Ionicons
               name={showPassword ? 'eye-off-outline' : 'eye-outline'}
               size={20}
-              color={isDark ? '#888888' : '#666666'}
+              color={colors.textTertiary}
             />
           </TouchableOpacity>
         )}
-      </View>
+      </Animated.View>
 
       {error && (
-        <Text
+        <View
           style={[
-            styles.errorText,
-            {
-              color: colors.error,
-              textAlign: isRTL ? 'right' : 'left',
-              writingDirection: inputDir,
-              fontFamily: 'IRANSans',
-            },
+            styles.errorContainer,
+            { flexDirection: labelIsRTL ? 'row-reverse' : 'row' },
           ]}
         >
-          {error}
-        </Text>
+          <Ionicons name="alert-circle" size={14} color={colors.error} />
+          <Text
+            style={[
+              styles.errorText,
+              {
+                color: colors.error,
+                textAlign: labelIsRTL ? 'right' : 'left',
+                writingDirection: labelDir,
+                fontFamily: 'IRANSans',
+              },
+            ]}
+          >
+            {error}
+          </Text>
+        </View>
       )}
     </View>
   );
@@ -246,17 +266,17 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
 const styles = StyleSheet.create({
   container: {
     marginBottom: 16,
+    paddingTop: 8,
   },
   inputWrapper: {
     position: 'relative',
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
+    overflow: 'visible',
   },
   input: {
     fontSize: 14,
-    paddingVertical: 12,
-    minHeight: 48,
+    paddingVertical: 14,
+    minHeight: 52,
   },
   label: {
     position: 'absolute',
@@ -264,12 +284,17 @@ const styles = StyleSheet.create({
   },
   eyeIcon: {
     position: 'absolute',
-    top: 14,
+    top: 16,
+  },
+  errorContainer: {
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 6,
+    marginHorizontal: 4,
   },
   errorText: {
     fontSize: 12,
-    marginTop: 4,
-    marginHorizontal: 4,
+    flex: 1,
   },
 });
 

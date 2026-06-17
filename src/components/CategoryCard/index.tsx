@@ -1,10 +1,15 @@
 // src/components/CategoryCard/index.tsx
 import { useDirection } from '@/lib/hooks/useDirection';
-import { useTheme } from '@/styles/theme';
+import { useTheme, shadows } from '@/styles/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import React from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, useWindowDimensions } from 'react-native';
+import React, { useCallback } from 'react';
+import { Image, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
 
 interface CategoryCardProps {
   title: string;
@@ -14,6 +19,8 @@ interface CategoryCardProps {
   onPress?: () => void;
   size?: number;
 }
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 const CategoryCard: React.FC<CategoryCardProps> = ({
   title,
@@ -27,7 +34,21 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
   const direction = useDirection();
   const { width } = useWindowDimensions();
   const computedSize = size ?? Math.min(112, Math.max(86, (width - 64) / 3));
-  const iconSize = Math.min(64, computedSize * 0.56);
+  const iconSize = Math.min(58, computedSize * 0.52);
+
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handlePressIn = useCallback(() => {
+    scale.value = withSpring(0.92, { damping: 12, stiffness: 180 });
+  }, [scale]);
+
+  const handlePressOut = useCallback(() => {
+    scale.value = withSpring(1, { damping: 12, stiffness: 180 });
+  }, [scale]);
 
   const handlePress = () => {
     if (onPress) {
@@ -38,30 +59,43 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
   };
 
   return (
-    <TouchableOpacity
+    <AnimatedPressable
       onPress={handlePress}
-      activeOpacity={0.82}
-      style={[styles.container, { width: computedSize }]}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      style={[animatedStyle, styles.container, { width: computedSize }]}
     >
-      <LinearGradient
-        colors={gradientColors}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+      <View
         style={[
-          styles.gradient,
+          shadows.md,
           {
+            borderRadius: 18,
             width: computedSize,
             height: computedSize,
-            shadowOpacity: isDark ? 0.28 : 0.16,
           },
         ]}
       >
-        <Image
-          source={icon}
-          style={{ width: iconSize, height: iconSize }}
-          resizeMode="contain"
-        />
-      </LinearGradient>
+        <LinearGradient
+          colors={gradientColors}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[
+            styles.gradient,
+            {
+              width: computedSize,
+              height: computedSize,
+            },
+          ]}
+        >
+          {/* Glass overlay for premium feel */}
+          <View style={styles.glassOverlay} />
+          <Image
+            source={icon}
+            style={{ width: iconSize, height: iconSize }}
+            resizeMode="contain"
+          />
+        </LinearGradient>
+      </View>
 
       <Text
         style={[
@@ -78,7 +112,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
       >
         {title}
       </Text>
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 };
 
@@ -88,20 +122,22 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   gradient: {
-    borderRadius: 14,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowRadius: 8,
-    elevation: 4,
+    overflow: 'hidden',
+  },
+  glassOverlay: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 18,
   },
   title: {
     fontSize: 12,
     fontFamily: 'IRANSans-Bold',
     textAlign: 'center',
-    marginTop: 7,
-    lineHeight: 16,
+    marginTop: 8,
+    lineHeight: 17,
   },
 });
 

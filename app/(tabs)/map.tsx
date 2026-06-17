@@ -1,12 +1,15 @@
-import { Header } from '@/components';
+import { Header, SkeletonCard, SkeletonList } from '@/components';
 import LeafletMap from '@/components/Map/LeafletMap';
 import { apiService } from '@/lib/api/apiService';
 import { useDirection } from '@/lib/hooks/useDirection';
+import { showToast } from '@/lib/toast/showToast';
 import { useTheme } from '@/styles/theme';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
+import { MotiView } from 'moti';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 const mockPlaces = [
   {
@@ -52,6 +55,8 @@ export default function MapScreen() {
   const direction = useDirection();
   const [selectedFilter, setSelectedFilter] = useState<PlaceType>('all');
   const [places, setPlaces] = useState<any[]>(mockPlaces);
+  const [isFetchingPlaces, setIsFetchingPlaces] = useState(false);
+  const requestIdRef = useRef(0);
 
   const filters: { key: PlaceType; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
     { key: 'all', label: t('all'), icon: 'apps-outline' },
@@ -84,6 +89,10 @@ export default function MapScreen() {
   };
 
   const handleRegionChange = async (topLeft: any, bottomRight: any) => {
+    const requestId = requestIdRef.current + 1;
+    requestIdRef.current = requestId;
+    setIsFetchingPlaces(true);
+
     try {
       const response: any = await apiService.getNearbyPlaces({
         topLeftLat: topLeft.lat,
@@ -92,9 +101,18 @@ export default function MapScreen() {
         bottomRightLng: bottomRight.lng,
       });
       const nextPlaces = response?.data ?? response;
-      if (Array.isArray(nextPlaces)) setPlaces(nextPlaces);
+      if (requestId === requestIdRef.current && Array.isArray(nextPlaces)) setPlaces(nextPlaces);
     } catch (error) {
-      console.log('Error fetching places:', error);
+      if (requestId === requestIdRef.current) {
+        showToast({
+          type: 'error',
+          message: error,
+          fallback: direction.isRTL ? 'دریافت مکان‌های اطراف انجام نشد.' : 'Could not load nearby places.',
+          language: direction.isRTL ? 'fa' : 'en',
+        });
+      }
+    } finally {
+      if (requestId === requestIdRef.current) setIsFetchingPlaces(false);
     }
   };
 
@@ -164,46 +182,55 @@ export default function MapScreen() {
             </View>
           </View>
 
-          <FlatList
+          <FlashList
             data={filteredPlaces}
+            estimatedItemSize={80}
             keyExtractor={(item, index) => item._id || item.id || String(index)}
-            renderItem={({ item }) => {
+            ListHeaderComponent={isFetchingPlaces && filteredPlaces.length > 0 ? <SkeletonCard rows={2} avatar /> : null}
+            ListEmptyComponent={isFetchingPlaces ? <SkeletonList count={3} rows={2} avatar /> : null}
+            renderItem={({ item, index }) => {
               const type = item.category || item.type || 'location';
               const color = getPlaceColor(type);
               const name = direction.isRTL ? item.nameFa || item.name : item.nameEn || item.name;
               const address = direction.isRTL ? item.addressFa || item.address : item.addressEn || item.address;
               return (
-                <TouchableOpacity
-                  className="rounded-2xl p-3 mb-3 border"
-                  style={{ backgroundColor: isDark ? colors.card : '#ffffff', borderColor: colors.border }}
-                  activeOpacity={0.75}
+                <MotiView
+                  from={{ opacity: 0, translateY: 15 }}
+                  animate={{ opacity: 1, translateY: 0 }}
+                  transition={{ type: 'timing', duration: 250, delay: index * 30 }}
                 >
-                  <View className="items-center" style={direction.row}>
-                    <View
-                      className="w-12 h-12 rounded-2xl justify-center items-center"
-                      style={{ backgroundColor: `${color}1f` }}
-                    >
-                      <Ionicons name={getPlaceIcon(type) as any} size={24} color={color} />
-                    </View>
-                    <View className="flex-1 mx-3" style={direction.startItems}>
-                      <Text
-                        style={{ color: colors.text, fontFamily: 'IRANSans-Bold', fontSize: 14, ...direction.text }}
-                        numberOfLines={1}
+                  <TouchableOpacity
+                    className="rounded-2xl p-3 mb-3 border"
+                    style={{ backgroundColor: isDark ? colors.card : '#ffffff', borderColor: colors.border }}
+                    activeOpacity={0.75}
+                  >
+                    <View className="items-center" style={direction.row}>
+                      <View
+                        className="w-12 h-12 rounded-2xl justify-center items-center"
+                        style={{ backgroundColor: `${color}1f` }}
                       >
-                        {name}
-                      </Text>
-                      <Text
-                        style={{ color: colors.textSecondary, fontFamily: 'IRANSans', fontSize: 12, marginTop: 3, ...direction.text }}
-                        numberOfLines={1}
-                      >
-                        {address}
-                      </Text>
+                        <Ionicons name={getPlaceIcon(type) as any} size={24} color={color} />
+                      </View>
+                      <View className="flex-1 mx-3" style={direction.startItems}>
+                        <Text
+                          style={{ color: colors.text, fontFamily: 'IRANSans-Bold', fontSize: 14, ...direction.text }}
+                          numberOfLines={1}
+                        >
+                          {name}
+                        </Text>
+                        <Text
+                          style={{ color: colors.textSecondary, fontFamily: 'IRANSans', fontSize: 12, marginTop: 3, ...direction.text }}
+                          numberOfLines={1}
+                        >
+                          {address}
+                        </Text>
+                      </View>
+                      <View className="w-9 h-9 rounded-full justify-center items-center" style={{ backgroundColor: `${colors.primary}1f` }}>
+                        <Ionicons name="navigate" size={16} color={colors.primary} />
+                      </View>
                     </View>
-                    <View className="w-9 h-9 rounded-full justify-center items-center" style={{ backgroundColor: `${colors.primary}1f` }}>
-                      <Ionicons name="navigate" size={16} color={colors.primary} />
-                    </View>
-                  </View>
-                </TouchableOpacity>
+                  </TouchableOpacity>
+                </MotiView>
               );
             }}
             showsVerticalScrollIndicator={false}

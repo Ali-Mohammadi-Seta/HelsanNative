@@ -1,11 +1,26 @@
 import { Button, CategoryCard, Header } from '@/components';
 import { useDirection } from '@/lib/hooks/useDirection';
-import { useTheme } from '@/styles/theme';
+import { gradients, shadows, useTheme } from '@/styles/theme';
+import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React from 'react';
-import { Image, ScrollView, Text, useWindowDimensions, View } from 'react-native';
+import {
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { useTranslation } from 'react-i18next';
+import Animated, {
+  FadeInDown,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 
 type Category = {
   key: string;
@@ -15,24 +30,271 @@ type Category = {
   gradientColors: [string, string, ...string[]];
 };
 
+type BannerProps = {
+  children: React.ReactNode;
+  gradientColors: [string, string, ...string[]];
+  onPress?: () => void;
+  delay?: number;
+  style?: object;
+};
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 const chunk = <T,>(items: T[], size: number) => {
   const rows: T[][] = [];
   for (let i = 0; i < items.length; i += size) rows.push(items.slice(i, i + size));
   return rows;
 };
 
+function BannerCard({ children, gradientColors, onPress, delay = 0, style }: BannerProps) {
+  const scale = useSharedValue(1);
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <Animated.View
+      entering={FadeInDown.delay(delay).duration(360).springify().damping(18)}
+      style={style}
+    >
+      <AnimatedPressable
+        onPress={onPress}
+        disabled={!onPress}
+        onPressIn={() => {
+          scale.value = withSpring(0.98, { damping: 15, stiffness: 220 });
+        }}
+        onPressOut={() => {
+          scale.value = withSpring(1, { damping: 15, stiffness: 220 });
+        }}
+        style={[animStyle, shadows.lg]}
+      >
+        <LinearGradient
+          colors={gradientColors}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.bannerGradient}
+        >
+          {children}
+        </LinearGradient>
+      </AnimatedPressable>
+    </Animated.View>
+  );
+}
+
+function SectionTitle({
+  title,
+  delay = 0,
+}: {
+  title: string;
+  delay?: number;
+}) {
+  const { colors } = useTheme();
+  const direction = useDirection();
+
+  return (
+    <Animated.View
+      entering={FadeInDown.delay(delay).duration(260)}
+      style={[styles.sectionTitle, direction.startItems]}
+    >
+      <View style={[styles.sectionTitleRow, direction.row]}>
+        <View style={[styles.sectionBar, { backgroundColor: colors.primary }]} />
+        <Text
+          style={[
+            styles.sectionTitleText,
+            { color: colors.text },
+            direction.text,
+          ]}
+        >
+          {title}
+        </Text>
+      </View>
+    </Animated.View>
+  );
+}
+
+function HeroAction({
+  icon,
+  label,
+  onPress,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  onPress: () => void;
+}) {
+  const { colors, isDark } = useTheme();
+  const direction = useDirection();
+  const scale = useSharedValue(1);
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <AnimatedPressable
+      onPress={onPress}
+      onPressIn={() => {
+        scale.value = withSpring(0.95, { damping: 13, stiffness: 220 });
+      }}
+      onPressOut={() => {
+        scale.value = withSpring(1, { damping: 13, stiffness: 220 });
+      }}
+      style={[
+        animStyle,
+        styles.heroAction,
+        {
+          backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.72)',
+          borderColor: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.88)',
+          flexDirection: direction.isRTL ? 'row-reverse' : 'row',
+        },
+      ]}
+    >
+      <Ionicons name={icon} size={16} color={colors.primary} />
+      <Text
+        numberOfLines={1}
+        style={[
+          styles.heroActionText,
+          { color: colors.text },
+          direction.text,
+        ]}
+      >
+        {label}
+      </Text>
+    </AnimatedPressable>
+  );
+}
+
+function HomeHero({
+  compact,
+  imageSize,
+}: {
+  compact: boolean;
+  imageSize: number;
+}) {
+  const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const direction = useDirection();
+
+  return (
+    <Animated.View entering={FadeInDown.duration(360).springify().damping(18)}>
+      <LinearGradient
+        colors={isDark ? gradients.heroBanner.dark : gradients.heroBanner.light}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[
+          styles.hero,
+          {
+            borderColor: isDark ? colors.glassBorder : '#ffffff',
+            minHeight: compact ? 218 : 244,
+          },
+        ]}
+      >
+        <View
+          pointerEvents="none"
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.22)',
+            },
+          ]}
+        />
+
+        <View style={[styles.heroContent, compact ? undefined : direction.row]}>
+          <View style={[styles.heroTextColumn, direction.startItems]}>
+            <Text
+              style={[
+                styles.heroEyebrow,
+                { color: colors.primary },
+                direction.text,
+              ]}
+            >
+              {t('footer.text3')}
+            </Text>
+            <Text
+              style={[
+                styles.heroTitle,
+                { color: colors.text },
+                direction.text,
+              ]}
+            >
+              {t('logoTitle')}
+            </Text>
+            <Animated.View
+              entering={FadeInDown.delay(70).duration(260)}
+              style={[
+                styles.heroLine,
+                {
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.62)',
+                  borderColor: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.82)',
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.heroLineText,
+                  { color: colors.text },
+                  direction.text,
+                ]}
+              >
+                {t('bannerTexts.firstText')}
+              </Text>
+            </Animated.View>
+            <Animated.Text
+              entering={FadeInDown.delay(110).duration(260)}
+              style={[
+                styles.heroDescription,
+                { color: colors.textSecondary },
+                direction.text,
+              ]}
+            >
+              {t('homePage.consultationBannerTitle')} · {t('homePage.consultationBannerDesc')}
+            </Animated.Text>
+
+            <View style={[styles.heroActions, direction.row]}>
+              <HeroAction
+                icon="videocam-outline"
+                label={t('homePage.consultationBannerButton')}
+                onPress={() => router.push('/doctors-consultation')}
+              />
+            </View>
+          </View>
+
+          <Animated.View
+            style={[
+              styles.heroImageWrap,
+              {
+                width: imageSize,
+                height: imageSize,
+                backgroundColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.66)',
+              },
+            ]}
+          >
+            <Image
+              source={require('@/assets/images/5 (1).png')}
+              resizeMode="contain"
+              style={{ width: imageSize * 0.86, height: imageSize * 0.86 }}
+            />
+          </Animated.View>
+        </View>
+      </LinearGradient>
+    </Animated.View>
+  );
+}
+
 export default function HomeScreen() {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const direction = useDirection();
   const { width } = useWindowDimensions();
-  const contentPadding = width < 380 ? 14 : 16;
-  const cardGap = width < 380 ? 8 : 12;
-  const cardSize = Math.floor((width - contentPadding * 2 - cardGap * 2) / 3);
-  const bannerImageSize = width < 380 ? 86 : 104;
-  const shopImageWidth = width < 380 ? 100 : 130;
 
-  const openConsultation = () => router.push('/doctors-consultation');
+  const compact = width < 420;
+  const tablet = width >= 700;
+  const contentPadding = compact ? 14 : tablet ? 24 : 16;
+  const contentWidth = Math.min(width - contentPadding * 2, 820);
+  const columns = tablet ? 5 : width >= 520 ? 4 : 3;
+  const cardGap = compact ? 9 : 12;
+  const cardSize = Math.floor((contentWidth - cardGap * (columns - 1)) / columns);
+  const bannerImageSize = compact ? 78 : tablet ? 126 : 98;
+  const heroImageSize = compact ? 88 : tablet ? 118 : 102;
+  const shopImageWidth = compact ? 94 : tablet ? 154 : 122;
 
   const categories: Category[] = [
     {
@@ -72,7 +334,7 @@ export default function HomeScreen() {
     },
     {
       key: 'healthMonitoring',
-      title: t('healthMonitoring', { defaultValue: 'Health monitoring' }),
+      title: t('healthMonitoring'),
       icon: require('@/assets/images/volunteeringCampaign.gif'),
       url: '/health-monitoring',
       gradientColors: ['#F6C324', '#F17E7E'],
@@ -177,17 +439,18 @@ export default function HomeScreen() {
     },
   ];
 
-  const renderCategoryGrid = (items: Category[]) => (
-    <View className="my-2">
-      {chunk(items, 3).map((row, rowIndex) => (
-        <View
-          key={rowIndex}
+  const renderCategoryGrid = (items: Category[], baseDelay: number = 0) => (
+    <View style={styles.grid}>
+      {chunk(items, columns).map((row, rowIndex) => (
+        <Animated.View
+          key={row.map((item) => item.key).join('-')}
+          entering={FadeInDown.delay(baseDelay + rowIndex * 55).duration(280).springify().damping(18)}
           style={[
             direction.row,
+            styles.gridRow,
             {
-              justifyContent: row.length === 3 ? 'space-between' : 'flex-start',
               columnGap: cardGap,
-              marginBottom: 2,
+              justifyContent: 'flex-start',
             },
           ]}
         >
@@ -201,7 +464,7 @@ export default function HomeScreen() {
               size={cardSize}
             />
           ))}
-        </View>
+        </Animated.View>
       ))}
     </View>
   );
@@ -211,128 +474,126 @@ export default function HomeScreen() {
   const thirdRowCategories = categories.slice(14);
 
   return (
-    <View className="flex-1">
+    <View className="flex-1" style={{ backgroundColor: colors.background }}>
       <Header />
 
       <ScrollView
         className="flex-1"
         style={{ backgroundColor: colors.background }}
+        contentContainerStyle={{ paddingBottom: 34 }}
         showsVerticalScrollIndicator={false}
       >
-        <View style={{ paddingHorizontal: contentPadding, paddingTop: 16, paddingBottom: 28 }}>
-          <LinearGradient
-            colors={isDark ? ['#4a2c2c', '#5c3a3a'] : ['#fff1f2', '#fecaca']}
-            className="rounded-2xl p-5 mb-5 shadow-lg shadow-black/10 overflow-hidden"
-          >
-            <View className="items-center" style={direction.row}>
-              <View
-                className="flex-1"
-                style={[
-                  direction.startItems,
-                  direction.isRTL ? { paddingLeft: 12 } : { paddingRight: 12 },
-                ]}
-              >
-                <Text
-                  className="text-lg mb-2"
-                  style={{
-                    fontFamily: 'IRANSans-Bold',
-                    color: isDark ? '#fecaca' : '#1f2937',
-                    ...direction.text,
-                  }}
-                >
-                  {t('homePage.consultationBannerTitle')}
-                </Text>
-                <Text
-                  className="text-sm mb-3 leading-5"
-                  style={{
-                    fontFamily: 'IRANSans',
-                    color: isDark ? '#fca5a5' : '#4b5563',
-                    ...direction.text,
-                  }}
-                >
-                  {t('homePage.consultationBannerDesc')}
-                </Text>
-                <Button type="primary" size="small" onPress={openConsultation}>
-                  {t('homePage.consultationBannerButton')}
-                </Button>
-              </View>
-              <Image
-                source={require('@/assets/images/5 (1).png')}
-                style={{ width: bannerImageSize, height: bannerImageSize }}
-                resizeMode="contain"
-              />
-            </View>
-          </LinearGradient>
+        <View
+          style={{
+            width: contentWidth,
+            alignSelf: 'center',
+            paddingTop: 16,
+          }}
+        >
+          <HomeHero compact={compact} imageSize={heroImageSize} />
 
-          {renderCategoryGrid(firstRowCategories)}
+          <View style={styles.section}>
+            <SectionTitle
+              delay={120}
+              title={t('homePage.sections.medical', { defaultValue: t('medicalServices') })}
+            />
+            {renderCategoryGrid(firstRowCategories, 160)}
+          </View>
 
-          <LinearGradient
-            colors={isDark ? ['#3d2a20', '#4a3830', '#3d2a20'] : ['#fecaca', '#ecdccf', '#fecaca']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            className="rounded-2xl p-5 my-5 shadow-lg shadow-black/10 overflow-hidden"
+          <BannerCard
+            gradientColors={isDark ? gradients.warm.dark : gradients.warm.light}
+            delay={240}
+            style={styles.bannerSpacing}
           >
-            <View className="items-center" style={direction.row}>
+            <View
+              style={[
+                styles.mainBanner,
+                direction.row,
+                { padding: compact ? 14 : 18 },
+              ]}
+            >
               <Image
                 source={require('@/assets/images/3333.jpg')}
-                style={{ width: bannerImageSize + 4, height: bannerImageSize + 4, borderRadius: 14 }}
+                style={[
+                  styles.mainBannerPhoto,
+                  {
+                    width: bannerImageSize + 12,
+                    height: compact ? 92 : 116,
+                  },
+                ]}
                 resizeMode="cover"
               />
-              <View className="flex-1 px-3" style={direction.startItems}>
+              <View style={[styles.bannerTextBlock, direction.startItems]}>
                 <Image
                   source={require('@/assets/images/sepehrsalamat.png')}
-                  className="w-10 h-10 mb-2"
+                  style={styles.systemLogo}
                   resizeMode="contain"
                 />
                 <Text
-                  className="text-base mb-2"
-                  style={{
-                    fontFamily: 'IRANSans-Bold',
-                    color: isDark ? '#fed7aa' : '#7c2d12',
-                    ...direction.text,
-                  }}
+                  style={[
+                    styles.bannerTitle,
+                    { color: isDark ? '#fed7aa' : '#7c2d12' },
+                    direction.text,
+                  ]}
                 >
                   {t('homePage.mainBannerTitle')}
                 </Text>
                 <Text
-                  className="text-sm leading-5"
-                  style={{
-                    fontFamily: 'IRANSans',
-                    color: isDark ? '#fdba74' : '#7c2d12',
-                    ...direction.text,
-                  }}
+                  style={[
+                    styles.bannerDescription,
+                    { color: isDark ? '#fdba74' : '#7c2d12' },
+                    direction.text,
+                  ]}
                 >
                   {t('homePage.mainBannerDesc')}
                 </Text>
               </View>
             </View>
-          </LinearGradient>
+          </BannerCard>
 
-          {renderCategoryGrid(secondRowCategories)}
+          <View style={styles.section}>
+            <SectionTitle
+              delay={280}
+              title={t('homePage.sections.support', { defaultValue: t('healthcareCompaniesList') })}
+            />
+            {renderCategoryGrid(secondRowCategories, 320)}
+          </View>
 
-          <View
-            className="rounded-2xl my-5 overflow-hidden shadow-lg shadow-black/10"
-            style={{ backgroundColor: isDark ? colors.card : '#ffffff' }}
+          <BannerCard
+            gradientColors={isDark ? gradients.card.dark : gradients.card.light}
+            onPress={() => router.push('/pharmacies')}
+            delay={380}
+            style={styles.bannerSpacing}
           >
-            <View style={direction.row}>
-              <View className="flex-1 p-5 justify-center" style={direction.startItems}>
+            <View
+              style={[
+                styles.shopBanner,
+                direction.row,
+                { minHeight: compact ? 140 : 158 },
+              ]}
+            >
+              <View
+                style={[
+                  styles.shopCopy,
+                  direction.startItems,
+                  { padding: compact ? 16 : 20 },
+                ]}
+              >
                 <Text
-                  className="text-base mb-2"
-                  style={{
-                    fontFamily: 'IRANSans-Bold',
-                    color: isDark ? colors.text : '#1f2937',
-                    ...direction.text,
-                  }}
+                  style={[
+                    styles.bannerTitle,
+                    { color: colors.text },
+                    direction.text,
+                  ]}
                 >
                   {t('homePage.shopBannerTitle')}
                 </Text>
                 <Text
-                  className="text-sm mb-3 leading-5"
-                  style={{
-                    fontFamily: 'IRANSans',
-                    color: isDark ? colors.textSecondary : '#4b5563',
-                    ...direction.text,
-                  }}
+                  style={[
+                    styles.bannerDescription,
+                    { color: colors.textSecondary },
+                    direction.text,
+                  ]}
                 >
                   {t('homePage.shopBannerDesc')}
                 </Text>
@@ -341,21 +602,212 @@ export default function HomeScreen() {
                 </Button>
               </View>
               <View
-                className="bg-[#149CBF] justify-center items-center p-4"
-                style={{ width: shopImageWidth }}
+                style={[
+                  styles.shopImagePane,
+                  {
+                    width: shopImageWidth,
+                    borderTopLeftRadius: direction.isRTL ? 22 : 0,
+                    borderBottomLeftRadius: direction.isRTL ? 22 : 0,
+                    borderTopRightRadius: direction.isRTL ? 0 : 22,
+                    borderBottomRightRadius: direction.isRTL ? 0 : 22,
+                  },
+                ]}
               >
                 <Image
                   source={require('@/assets/images/3.webp')}
-                  style={{ width: shopImageWidth - 36, height: shopImageWidth - 36 }}
+                  style={{ width: shopImageWidth - 34, height: shopImageWidth - 34 }}
+                  resizeMode="contain"
+                />
+                <Image
+                  source={require('@/assets/images/2.png')}
+                  style={[
+                    styles.shopFiller,
+                    direction.isRTL ? { left: 6 } : { right: 6 },
+                  ]}
                   resizeMode="contain"
                 />
               </View>
             </View>
-          </View>
+          </BannerCard>
 
-          {renderCategoryGrid(thirdRowCategories)}
+          <View style={styles.section}>
+            <SectionTitle
+              delay={420}
+              title={t('homePage.sections.more', { defaultValue: t('explore') })}
+            />
+            {renderCategoryGrid(thirdRowCategories, 460)}
+          </View>
         </View>
+      <View className='h-24! '></View>
+
       </ScrollView>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  afterHero: {
+    marginTop: 14,
+  },
+  bannerDescription: {
+    fontFamily: 'IRANSans',
+    fontSize: 12,
+    lineHeight: 20,
+    marginBottom: 13,
+  },
+  bannerGradient: {
+    borderRadius: 22,
+    overflow: 'hidden',
+  },
+  bannerSpacing: {
+    marginTop: 10,
+    marginBottom: 8,
+  },
+  bannerTextBlock: {
+    flex: 1,
+    minWidth: 0,
+  },
+  bannerTitle: {
+    fontFamily: 'IRANSans-Bold',
+    fontSize: 15,
+    lineHeight: 23,
+    marginBottom: 6,
+  },
+  consultationBanner: {
+    alignItems: 'center',
+    gap: 14,
+  },
+  grid: {
+    marginTop: 2,
+  },
+  gridRow: {
+    marginBottom: 2,
+  },
+  hero: {
+    borderRadius: 28,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  heroAction: {
+    alignItems: 'center',
+    borderRadius: 999,
+    borderWidth: 1,
+    gap: 6,
+    minHeight: 36,
+    paddingHorizontal: 12,
+  },
+  heroActionText: {
+    fontFamily: 'IRANSans-Bold',
+    fontSize: 11,
+    maxWidth: 142,
+  },
+  heroActions: {
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 12,
+  },
+  heroBackgroundImage: {
+    width: '100%',
+    height: '100%',
+  },
+  heroContent: {
+    alignItems: 'center',
+    flex: 1,
+    gap: 14,
+    justifyContent: 'space-between',
+    padding: 16,
+  },
+  heroDescription: {
+    fontFamily: 'IRANSans',
+    fontSize: 13,
+    lineHeight: 22,
+    marginTop: 7,
+    maxWidth: 420,
+  },
+  heroEyebrow: {
+    fontFamily: 'IRANSans-Bold',
+    fontSize: 11,
+    lineHeight: 18,
+    marginBottom: 4,
+  },
+  heroImageWrap: {
+    alignItems: 'center',
+    borderRadius: 34,
+    justifyContent: 'center',
+  },
+  heroLine: {
+    borderRadius: 14,
+    borderWidth: 1,
+    marginTop: 7,
+    paddingHorizontal: 11,
+    paddingVertical: 8,
+  },
+  heroLineText: {
+    fontFamily: 'IRANSans-Medium',
+    fontSize: 12,
+    lineHeight: 20,
+  },
+  heroTextColumn: {
+    flex: 1,
+    minWidth: 0,
+    width: '100%',
+  },
+  heroTitle: {
+    fontFamily: 'IRANSans-Bold',
+    fontSize: 23,
+    lineHeight: 33,
+  },
+  mainBanner: {
+    alignItems: 'center',
+    gap: 14,
+  },
+  mainBannerPhoto: {
+    borderRadius: 18,
+  },
+  section: {
+    marginTop: 18,
+  },
+  sectionBar: {
+    borderRadius: 2,
+    height: 18,
+    width: 3,
+  },
+  sectionTitle: {
+    marginBottom: 10,
+    marginTop: 2,
+  },
+  sectionTitleRow: {
+    alignItems: 'center',
+    gap: 8,
+  },
+  sectionTitleText: {
+    fontFamily: 'IRANSans-Bold',
+    fontSize: 15,
+  },
+  shopBanner: {
+    overflow: 'hidden',
+  },
+  shopCopy: {
+    flex: 1,
+    justifyContent: 'center',
+    minWidth: 0,
+  },
+  shopFiller: {
+    bottom: 6,
+    height: 34,
+    opacity: 0.35,
+    position: 'absolute',
+    width: 34,
+  },
+  shopImagePane: {
+    alignItems: 'center',
+    backgroundColor: '#149CBF',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  systemLogo: {
+    height: 34,
+    marginBottom: 7,
+    width: 34,
+  },
+});

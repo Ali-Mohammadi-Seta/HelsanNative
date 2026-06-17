@@ -1,9 +1,15 @@
 import { useDirection } from '@/lib/hooks/useDirection';
-import { useTheme } from '@/styles/theme';
+import { useTheme, shadows } from '@/styles/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import React, { useCallback } from 'react';
+import { BlurView } from 'expo-blur';
+import { Pressable, Text, View, StyleSheet } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -13,6 +19,8 @@ interface BackHeaderProps {
   showBackButton?: boolean;
   rightElement?: React.ReactNode;
 }
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 const BackHeader: React.FC<BackHeaderProps> = ({
   title,
@@ -25,50 +33,84 @@ const BackHeader: React.FC<BackHeaderProps> = ({
   const direction = useDirection();
   const insets = useSafeAreaInsets();
 
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handlePressIn = useCallback(() => {
+    scale.value = withSpring(0.88, { damping: 12, stiffness: 200 });
+  }, [scale]);
+
+  const handlePressOut = useCallback(() => {
+    scale.value = withSpring(1, { damping: 12, stiffness: 200 });
+  }, [scale]);
+
   const handleBackPress = () => {
     if (onBackPress) onBackPress();
     else router.back();
   };
 
   return (
-    <View
-      style={{
-        paddingTop: insets.top + 8,
-        backgroundColor: isDark ? colors.card : '#ffffff',
-        borderBottomWidth: 1,
-        borderBottomColor: isDark ? colors.border : '#e5e5e5',
-      }}
-    >
+    <View style={shadows.sm}>
+      <BlurView
+        intensity={60}
+        tint={isDark ? "dark" : "light"}
+        style={[
+          {
+            paddingTop: insets.top + 4,
+            borderBottomWidth: StyleSheet.hairlineWidth,
+            borderBottomColor: colors.headerBorder,
+            backgroundColor: isDark ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.7)',
+          },
+        ]}
+      >
       <View
-        className="items-center justify-between px-4 py-3 min-h-[56px]"
+        className="items-center justify-between px-4 py-2.5 min-h-[52px]"
         style={direction.row}
       >
         <View className="flex-1" style={direction.startItems}>
           {showBackButton && (
-            <TouchableOpacity
+            <AnimatedPressable
               onPress={handleBackPress}
-              className="items-center py-1 px-1"
-              style={direction.row}
-              activeOpacity={0.7}
+              onPressIn={handlePressIn}
+              onPressOut={handlePressOut}
+              style={[
+                animatedStyle,
+                {
+                  flexDirection: direction.isRTL ? 'row-reverse' : 'row',
+                  alignItems: 'center',
+                  gap: 6,
+                },
+              ]}
             >
-              <Ionicons
-                name={direction.isRTL ? 'arrow-forward' : 'arrow-back'}
-                size={24}
-                color={isDark ? colors.text : '#000000'}
-              />
+              <View
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: 12,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: isDark ? colors.cardElevated : colors.surface,
+                }}
+              >
+                <Ionicons
+                  name={direction.isRTL ? 'arrow-forward' : 'arrow-back'}
+                  size={20}
+                  color={colors.text}
+                />
+              </View>
               <Text
                 style={{
-                  fontSize: 16,
-                  marginLeft: 4,
-                  marginRight: 4,
-                  fontFamily: 'IRANSans',
-                  color: isDark ? colors.text : '#000000',
+                  fontSize: 14,
+                  fontFamily: 'IRANSans-Medium',
+                  color: colors.textSecondary,
                   writingDirection: direction.dir,
                 }}
               >
                 {t('return')}
               </Text>
-            </TouchableOpacity>
+            </AnimatedPressable>
           )}
         </View>
 
@@ -76,11 +118,11 @@ const BackHeader: React.FC<BackHeaderProps> = ({
           {title && (
             <Text
               style={{
-                fontSize: 18,
+                fontSize: 17,
                 fontFamily: 'IRANSans-Bold',
                 textAlign: 'center',
                 writingDirection: direction.dir,
-                color: isDark ? colors.text : '#000000',
+                color: colors.text,
               }}
               numberOfLines={1}
             >
@@ -93,6 +135,7 @@ const BackHeader: React.FC<BackHeaderProps> = ({
           {rightElement}
         </View>
       </View>
+      </BlurView>
     </View>
   );
 };
