@@ -30,12 +30,18 @@ export default function HealthMonitoringScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View className="rounded-3xl overflow-hidden" style={{ backgroundColor: isDark ? colors.card : '#ffffff' }}>
-          <View className="h-32 bg-amber-100 items-center justify-center">
+          <View
+            className="h-32 items-center justify-center"
+            style={{ backgroundColor: isDark ? '#2a2110' : '#fef3c7' }}
+          >
             <Image source={require('@/assets/images/volunteeringCampaign.gif')} className="w-28 h-28" resizeMode="contain" />
           </View>
           <View className="p-5">
             <View className="items-center mb-4" style={direction.row}>
-              <View className="w-14 h-14 rounded-2xl items-center justify-center bg-amber-400/20">
+              <View
+                className="w-14 h-14 rounded-2xl items-center justify-center"
+                style={{ backgroundColor: isDark ? 'rgba(245,158,11,0.14)' : 'rgba(245,158,11,0.2)' }}
+              >
                 <Ionicons name="pulse-outline" size={30} color="#f59e0b" />
               </View>
               <View className="flex-1 mx-3" style={direction.startItems}>

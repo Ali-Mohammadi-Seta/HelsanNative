@@ -1,4 +1,4 @@
-import { Button, Header, SkeletonList } from '@/components';
+import { BackHeader, Button, SkeletonList } from '@/components';
 import { useLogout, useUserProfile } from '@/lib/api/useAuth';
 import { removeTokens } from '@/lib/auth/tokenStorage';
 import { useDirection } from '@/lib/hooks/useDirection';
@@ -140,7 +140,7 @@ export default function ProfileScreen() {
   if (!isLoggedIn) {
     return (
       <View className="flex-1" style={{ backgroundColor: colors.background }}>
-        <Header title={text.account} />
+        <BackHeader title={text.account} showBackButton={false} />
         <ScrollView
           className="flex-1"
           style={{ backgroundColor: isDark ? colors.background : colors.surface }}
@@ -207,7 +207,7 @@ export default function ProfileScreen() {
   if (isProfileLoading) {
     return (
       <View className="flex-1" style={{ backgroundColor: colors.background }}>
-        <Header title={text.account} />
+        <BackHeader title={text.account} showBackButton={false} />
         <ScrollView
           className="flex-1"
           style={{ backgroundColor: isDark ? colors.background : colors.surface }}
@@ -222,7 +222,7 @@ export default function ProfileScreen() {
 
   return (
     <View className="flex-1" style={{ backgroundColor: colors.background }}>
-      <Header title={text.account} />
+      <BackHeader title={text.account} showBackButton={false} />
 
       <ScrollView
         className="flex-1"

@@ -19,6 +19,7 @@ interface HeaderProps {
   title?: string;
   showBack?: boolean;
   onBackPress?: () => void;
+  showHomeActions?: boolean;
 }
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -45,7 +46,7 @@ function ActionButton({ onPress, children }: { onPress: () => void; children: Re
   );
 }
 
-const Header: React.FC<HeaderProps> = ({ title, showBack, onBackPress }) => {
+const Header: React.FC<HeaderProps> = ({ title, showBack, onBackPress, showHomeActions = false }) => {
   const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const { colors, isDark } = useTheme();
@@ -55,14 +56,14 @@ const Header: React.FC<HeaderProps> = ({ title, showBack, onBackPress }) => {
 
   const handleThemeToggle = useCallback(() => dispatch(toggleTheme()), [dispatch]);
   const handleLanguageToggle = useCallback(async () => {
-    const newLang = i18n.language === 'en' ? 'fa' : 'en';
+    const newLang = i18n.resolvedLanguage?.startsWith('fa') ? 'en' : 'fa';
     await changeLanguage(newLang);
-  }, [i18n.language]);
+  }, [i18n]);
 
   const LogoSection = () => (
-    <View className="items-center gap-2" style={direction.row}>
+    <View style={[{ alignItems: 'center', gap: 8, minWidth: 0, flexShrink: 1 }, direction.row]}>
       <Image source={require('@/assets/images/logo.png')} className="w-9 h-9" resizeMode="contain" />
-      <View style={direction.startItems}>
+      <View style={[{ minWidth: 0, flexShrink: 1 }, direction.startItems]}>
         <Text
           style={{
             fontSize: 15,
@@ -71,6 +72,8 @@ const Header: React.FC<HeaderProps> = ({ title, showBack, onBackPress }) => {
             ...direction.text,
           }}
           numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.78}
         >
           {t('logoTitle')}
         </Text>
@@ -83,6 +86,8 @@ const Header: React.FC<HeaderProps> = ({ title, showBack, onBackPress }) => {
             ...direction.text,
           }}
           numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.72}
         >
           {t('footer.text3')}
         </Text>
@@ -107,7 +112,7 @@ const Header: React.FC<HeaderProps> = ({ title, showBack, onBackPress }) => {
         >
           <Ionicons name="globe-outline" size={17} color={colors.textSecondary} />
           <Text style={{ color: colors.text, fontFamily: 'IRANSans-Bold', fontSize: 11 }}>
-            {i18n.language === 'fa' ? 'EN' : 'FA'}
+            {i18n.resolvedLanguage?.startsWith('fa') ? 'EN' : 'FA'}
           </Text>
         </View>
       </ActionButton>
@@ -206,12 +211,12 @@ const Header: React.FC<HeaderProps> = ({ title, showBack, onBackPress }) => {
         className="items-center justify-between px-4 py-2.5 min-h-[52px]"
         style={direction.row}
       >
-        <View className="flex-1" style={direction.startItems}>
+        <View style={[{ flex: title ? 1.65 : 1.25, minWidth: 0 }, direction.startItems]}>
           {showBack ? <BackButtonSection /> : <LogoSection />}
         </View>
 
         {title && (
-          <View className="flex-[2] items-center">
+          <View style={{ flex: title ? 1 : 2, alignItems: 'center', paddingHorizontal: 8 }}>
             <Text
               style={{
                 fontSize: 17,
@@ -221,14 +226,16 @@ const Header: React.FC<HeaderProps> = ({ title, showBack, onBackPress }) => {
                 writingDirection: direction.dir,
               }}
               numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.78}
             >
               {title}
             </Text>
           </View>
         )}
 
-        <View className="flex-1" style={direction.endItems}>
-          <ActionsSection />
+        <View style={[{ flex: title ? 0.05 : 1, minWidth: 0 }, direction.endItems]}>
+          {showHomeActions && <ActionsSection />}
         </View>
       </View>
     </View>

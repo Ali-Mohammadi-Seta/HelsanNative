@@ -91,7 +91,6 @@ export default function MedicalCentersScreen() {
 
         <FlashList
           data={currentData}
-          estimatedItemSize={120}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ padding: 16, paddingTop: 8, paddingBottom: 32 }}
           showsVerticalScrollIndicator={false}

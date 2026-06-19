@@ -48,7 +48,8 @@ const BackHeader: React.FC<BackHeaderProps> = ({
 
   const handleBackPress = () => {
     if (onBackPress) onBackPress();
-    else router.back();
+    else if (router.canGoBack()) router.back();
+    else router.replace('/(tabs)/home');
   };
 
   return (
@@ -114,7 +115,7 @@ const BackHeader: React.FC<BackHeaderProps> = ({
           )}
         </View>
 
-        <View className="flex-[2] items-center justify-center">
+        <View className="flex-[2] items-center justify-center px-2">
           {title && (
             <Text
               style={{
@@ -125,6 +126,8 @@ const BackHeader: React.FC<BackHeaderProps> = ({
                 color: colors.text,
               }}
               numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.78}
             >
               {title}
             </Text>

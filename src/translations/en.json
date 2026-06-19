@@ -505,5 +505,6 @@
   "success": "Success",
   "vitalSigns": "Vital Signs",
   "patientInfo": "Patient Info",
-  "name": "Name"
+  "name": "Name",
+  "forgotPassword": "Forgot your password?"
 }

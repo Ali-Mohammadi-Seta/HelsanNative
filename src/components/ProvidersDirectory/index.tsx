@@ -12,8 +12,8 @@ import { useTheme } from '@/styles/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import React, { useMemo, useState } from 'react';
-import { FlashList } from '@shopify/flash-list';
+import React, { useMemo, useRef, useState } from 'react';
+import { FlashList, type FlashListRef } from '@shopify/flash-list';
 import {
   Image,
   Text,
@@ -181,6 +181,7 @@ export default function ProvidersDirectory({ providerType }: { providerType: Pro
   const [filters, setFilters] = useState<FilterState>(initialFilters);
   const [appliedFilters, setAppliedFilters] = useState<FilterState>(initialFilters);
   const [filterOpen, setFilterOpen] = useState(false);
+  const listRef = useRef<FlashListRef<ProviderListItem>>(null);
 
   const queryFilters = useMemo(() => ({ ...appliedFilters }), [appliedFilters]);
   const active = hasActiveFilters(appliedFilters);
@@ -226,13 +227,20 @@ export default function ProvidersDirectory({ providerType }: { providerType: Pro
     if (url) router.push({ pathname: '/doctors-consultation', params: { url } });
   };
 
+  const openStickyFilters = () => {
+    setFilterOpen(true);
+    requestAnimationFrame(() => {
+      listRef.current?.scrollToOffset({ offset: 0, animated: true });
+    });
+  };
+
   return (
     <View className="flex-1" style={{ backgroundColor: isDark ? colors.background : '#f8fafc' }}>
       <BackHeader title={t(copy.titleKey)} />
 
       <FlashList
+        ref={listRef}
         data={providers}
-        estimatedItemSize={150}
         keyExtractor={(item, index) => `${getProviderId(item) || item.medicalId || item.licenseNumber || 'provider'}-${index}`}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ padding: 16, paddingBottom: 34 }}
@@ -337,7 +345,7 @@ export default function ProvidersDirectory({ providerType }: { providerType: Pro
                 <Ionicons name="search-outline" size={34} color={colors.textTertiary} />
               )}
               <Text style={{ color: colors.text, fontFamily: 'IRANSans-Bold', fontSize: 15, marginTop: 12, ...direction.centeredText }}>
-                {isError ? t('tryAgain') : t(copy.emptyKey)}
+                {isError ? t('providerDirectory.tryAgain') : t(copy.emptyKey)}
               </Text>
               <TouchableOpacity onPress={() => refetch()} className="mt-4 px-4 py-2 rounded-full" style={{ backgroundColor: copy.soft }}>
                 <Text style={{ color: copy.accent, fontFamily: 'IRANSans-Bold', fontSize: 12 }}>
@@ -359,6 +367,26 @@ export default function ProvidersDirectory({ providerType }: { providerType: Pro
         }}
         onEndReachedThreshold={0.4}
       />
+
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessibilityLabel={t('searchFilter')}
+        activeOpacity={0.82}
+        onPress={openStickyFilters}
+        className="absolute w-14 h-14 rounded-full items-center justify-center"
+        style={{
+          bottom: 24,
+          ...(direction.isRTL ? { left: 18 } : { right: 18 }),
+          backgroundColor: copy.accent,
+          elevation: 8,
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.22,
+          shadowRadius: 8,
+        }}
+      >
+        <Ionicons name="search" size={25} color="#ffffff" />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -391,6 +419,7 @@ function ProviderCard({
 
   return (
     <MotiView
+      key={`${getProviderId(provider) || provider.medicalId || provider.licenseNumber}-${index}`}
       from={{ opacity: 0, translateY: 20 }}
       animate={{ opacity: 1, translateY: 0 }}
       transition={{ type: 'timing', duration: 250, delay: (index % PAGE_SIZE) * 30 }}

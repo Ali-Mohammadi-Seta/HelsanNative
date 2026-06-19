@@ -22,6 +22,14 @@ interface CategoryCardProps {
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
+const darkenColor = (color: string) => {
+  const match = color.match(/^#([0-9a-f]{6})$/i);
+  if (!match) return color;
+  const value = Number.parseInt(match[1], 16);
+  const channel = (shift: number) => Math.round(((value >> shift) & 255) * 0.42);
+  return `#${[16, 8, 0].map((shift) => channel(shift).toString(16).padStart(2, '0')).join('')}`;
+};
+
 const CategoryCard: React.FC<CategoryCardProps> = ({
   title,
   icon,
@@ -35,6 +43,9 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
   const { width } = useWindowDimensions();
   const computedSize = size ?? Math.min(112, Math.max(86, (width - 64) / 3));
   const iconSize = Math.min(58, computedSize * 0.52);
+  const themedGradient = (isDark
+    ? gradientColors.map(darkenColor)
+    : gradientColors) as [string, string, ...string[]];
 
   const scale = useSharedValue(1);
 
@@ -76,7 +87,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
         ]}
       >
         <LinearGradient
-          colors={gradientColors}
+          colors={themedGradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={[
@@ -88,7 +99,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
           ]}
         >
           {/* Glass overlay for premium feel */}
-          <View style={styles.glassOverlay} />
+          <View style={[styles.glassOverlay, isDark && styles.darkOverlay]} />
           <Image
             source={icon}
             style={{ width: iconSize, height: iconSize }}
@@ -131,6 +142,9 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
     borderRadius: 18,
+  },
+  darkOverlay: {
+    backgroundColor: 'rgba(4, 12, 8, 0.2)',
   },
   title: {
     fontSize: 12,

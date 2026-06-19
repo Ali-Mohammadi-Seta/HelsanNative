@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, View, ViewStyle } from 'react-native';
+import { DimensionValue, StyleSheet, View, ViewStyle } from 'react-native';
 import { Skeleton } from 'moti/skeleton';
 import { useTheme } from '@/styles/theme';
 
@@ -15,12 +15,14 @@ export function SkeletonBox({ width = '100%', height = 16, radius = 8, style }: 
 
   return (
     <View style={[{ width, height }, style]}>
-      <Skeleton
-        colorMode={isDark ? 'dark' : 'light'}
-        width={width as number | string}
-        height={height as number}
-        radius={radius}
-      />
+      <View style={{ width: width as DimensionValue, height: height as DimensionValue, overflow: 'hidden', borderRadius: radius }}>
+        <Skeleton
+          colorMode={isDark ? 'dark' : 'light'}
+          width="100%"
+          height="100%"
+          radius={radius}
+        />
+      </View>
     </View>
   );
 }

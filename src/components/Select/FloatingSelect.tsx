@@ -207,7 +207,6 @@ const FloatingSelect: React.FC<FloatingSelectProps> = ({
 
             <FlashList
               data={options}
-              estimatedItemSize={50}
               keyExtractor={(item) => String(item.value)}
               renderItem={({ item }) => (
                 <TouchableOpacity

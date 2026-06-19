@@ -2,8 +2,9 @@ import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useDirection } from '@/lib/hooks/useDirection';
 import { RootState } from '@/redux/store';
+import { useUserProfile } from '@/lib/api/useAuth';
 import { useTheme, shadows } from '@/styles/theme';
-import { Platform, View, StyleSheet, type ColorValue } from 'react-native';
+import { Image, Platform, View, StyleSheet, type ColorValue } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,11 +15,13 @@ function TabIcon({
   focused,
   color,
   size,
+  avatarUri,
 }: {
   name: keyof typeof Ionicons.glyphMap;
   focused: boolean;
   color: string;
   size: number;
+  avatarUri?: string;
 }) {
   const { colors, isDark } = useTheme();
 
@@ -42,7 +45,20 @@ function TabIcon({
           }}
         />
       )}
-      <Ionicons name={name} size={size} color={color} />
+      {avatarUri ? (
+        <Image
+          source={{ uri: encodeURI(avatarUri) }}
+          style={{
+            width: size + 4,
+            height: size + 4,
+            borderRadius: (size + 4) / 2,
+            borderWidth: focused ? 2 : 1,
+            borderColor: focused ? colors.primary : colors.border,
+          }}
+        />
+      ) : (
+        <Ionicons name={name} size={size} color={color} />
+      )}
     </View>
   );
 }
@@ -53,6 +69,10 @@ export default function TabsLayout() {
   const direction = useDirection();
   const insets = useSafeAreaInsets();
   const isLoggedIn = useSelector((s: RootState) => s.auth.isLoggedIn);
+  const { data: userProfile } = useUserProfile(isLoggedIn);
+  const avatarUri = isLoggedIn
+    ? ((userProfile as any)?.profilePhotoUrl || (userProfile as any)?.profileImage || '').trim()
+    : '';
   const tabScreens = [
     {
       name: 'home',
@@ -103,12 +123,11 @@ export default function TabsLayout() {
           focused={focused}
           color={String(color)}
           size={size}
+          avatarUri={avatarUri || undefined}
         />
       ),
     },
   ];
-  const orderedScreens = direction.isRTL ? [...tabScreens].reverse() : tabScreens;
-
   return (
     <Tabs
       screenOptions={{
@@ -119,9 +138,9 @@ export default function TabsLayout() {
           position: 'absolute',
           borderTopColor: colors.tabBarBorder,
           borderTopWidth: StyleSheet.hairlineWidth,
-          height: 62 + insets.bottom,
-          paddingBottom: insets.bottom + 8,
-          paddingTop: 10,
+          height: 70 + Math.max(insets.bottom, 8),
+          paddingBottom: Math.max(insets.bottom, 8) + 6,
+          paddingTop: 8,
           flexDirection: direction.isRTL ? 'row-reverse' : 'row',
           elevation: 0, // Remove shadow on Android for blur to work cleanly
         },
@@ -136,7 +155,7 @@ export default function TabsLayout() {
         headerShown: false,
       }}
     >
-      {orderedScreens.map((screen) => (
+      {tabScreens.map((screen) => (
         <Tabs.Screen
           key={screen.name}
           name={screen.name}

@@ -5,7 +5,7 @@ import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { I18nextProvider } from 'react-i18next';
 import { store } from '@/redux/store';
-import i18n from '@/translations/i18n';
+import i18n, { initializeLanguage } from '@/translations/i18n';
 import { loadTheme } from '@/redux/slices/themeSlice';
 import { restoreAuthSession } from '@/redux/slices/authSlice';
 import { ThemeProvider } from './ThemeProvider';
@@ -48,6 +48,7 @@ export default function AppProviders({ children }: { children: React.ReactNode }
   useEffect(() => {
     async function prepare() {
       try {
+        await initializeLanguage();
         // Pre-load theme and auth state
         await store.dispatch(loadTheme() as any);
         await store.dispatch(restoreAuthSession() as any);

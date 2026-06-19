@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Image, Linking, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import config from '@/config';
 
 const healthcareCompanies = [
   {
@@ -12,7 +13,7 @@ const healthcareCompanies = [
     nameKey: 'healthcareCompaniesName.sepehrSalamat',
     defaultNameEn: 'Sepehr Salamat',
     defaultNameFa: 'سپهر سلامت',
-    link: 'https://sso.inhso.ir/oidc/auth?client_id=client_1753181661291_29ef29cc769b9290&redirect_uri=https://inhs.ir/LoginFromSso&response_type=code&state=random-string&scope=openid%20profile%20email%20offline_access&resource=https://inhso.ir',
+    link: config.sepehrSalamatSsoUrl,
     image: require('@/assets/images/sepehrsalamat.png'),
     color: '#22c55e',
   },

@@ -1,4 +1,4 @@
-import { Header, SkeletonCard, SkeletonList } from '@/components';
+import { BackHeader, SkeletonCard, SkeletonList } from '@/components';
 import LeafletMap from '@/components/Map/LeafletMap';
 import { apiService } from '@/lib/api/apiService';
 import { useDirection } from '@/lib/hooks/useDirection';
@@ -57,6 +57,7 @@ export default function MapScreen() {
   const [places, setPlaces] = useState<any[]>(mockPlaces);
   const [isFetchingPlaces, setIsFetchingPlaces] = useState(false);
   const requestIdRef = useRef(0);
+  const filtersRef = useRef<ScrollView>(null);
 
   const filters: { key: PlaceType; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
     { key: 'all', label: t('all'), icon: 'apps-outline' },
@@ -118,14 +119,18 @@ export default function MapScreen() {
 
   return (
     <View className="flex-1" style={{ backgroundColor: colors.background }}>
-      <Header title={t('locator')} />
+      <BackHeader title={t('locator')} showBackButton={false} />
 
       <View className="flex-1" style={{ backgroundColor: isDark ? colors.background : colors.surface }}>
         <View className="px-4 pt-4 pb-3">
           <ScrollView
+            ref={filtersRef}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ gap: 8, flexDirection: direction.isRTL ? 'row-reverse' : 'row' }}
+            onContentSizeChange={() => {
+              if (direction.isRTL) filtersRef.current?.scrollToEnd({ animated: false });
+            }}
           >
             {filters.map((filter) => {
               const active = selectedFilter === filter.key;
@@ -184,7 +189,6 @@ export default function MapScreen() {
 
           <FlashList
             data={filteredPlaces}
-            estimatedItemSize={80}
             keyExtractor={(item, index) => item._id || item.id || String(index)}
             ListHeaderComponent={isFetchingPlaces && filteredPlaces.length > 0 ? <SkeletonCard rows={2} avatar /> : null}
             ListEmptyComponent={isFetchingPlaces ? <SkeletonList count={3} rows={2} avatar /> : null}

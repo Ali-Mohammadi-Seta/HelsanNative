@@ -1,5 +1,7 @@
 import { Button, CategoryCard, Header } from '@/components';
+import { useUserProfile } from '@/lib/api/useAuth';
 import { useDirection } from '@/lib/hooks/useDirection';
+import { RootState } from '@/redux/store';
 import { gradients, shadows, useTheme } from '@/styles/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -15,6 +17,7 @@ import {
   View,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useSelector } from 'react-redux';
 import Animated, {
   FadeInDown,
   useAnimatedStyle,
@@ -164,10 +167,10 @@ function HeroAction({
 
 function HomeHero({
   compact,
-  imageSize,
+  displayName,
 }: {
   compact: boolean;
-  imageSize: number;
+  displayName?: string;
 }) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
@@ -183,7 +186,7 @@ function HomeHero({
           styles.hero,
           {
             borderColor: isDark ? colors.glassBorder : '#ffffff',
-            minHeight: compact ? 218 : 244,
+            minHeight: compact ? 164 : 178,
           },
         ]}
       >
@@ -197,7 +200,7 @@ function HomeHero({
           ]}
         />
 
-        <View style={[styles.heroContent, compact ? undefined : direction.row]}>
+        <View style={styles.heroContent}>
           <View style={[styles.heroTextColumn, direction.startItems]}>
             <Text
               style={[
@@ -215,40 +218,22 @@ function HomeHero({
                 direction.text,
               ]}
             >
-              {t('logoTitle')}
+              {displayName
+                ? `${direction.isRTL ? 'سلام' : 'Hello'} ${displayName}`
+                : t('homePage.consultationBannerTitle')}
             </Text>
-            <Animated.View
-              entering={FadeInDown.delay(70).duration(260)}
-              style={[
-                styles.heroLine,
-                {
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.62)',
-                  borderColor: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.82)',
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.heroLineText,
-                  { color: colors.text },
-                  direction.text,
-                ]}
-              >
-                {t('bannerTexts.firstText')}
-              </Text>
-            </Animated.View>
             <Animated.Text
-              entering={FadeInDown.delay(110).duration(260)}
+              entering={FadeInDown.delay(70).duration(260)}
               style={[
                 styles.heroDescription,
                 { color: colors.textSecondary },
                 direction.text,
               ]}
             >
-              {t('homePage.consultationBannerTitle')} · {t('homePage.consultationBannerDesc')}
+              {t('homePage.consultationBannerDesc')}
             </Animated.Text>
 
-            <View style={[styles.heroActions, direction.row]}>
+            <View className={`w-full flex  ${direction.isRTL ? 'justify-end' : 'justify-start'} `} style={[styles.heroActions, direction.row]}>
               <HeroAction
                 icon="videocam-outline"
                 label={t('homePage.consultationBannerButton')}
@@ -257,22 +242,6 @@ function HomeHero({
             </View>
           </View>
 
-          <Animated.View
-            style={[
-              styles.heroImageWrap,
-              {
-                width: imageSize,
-                height: imageSize,
-                backgroundColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.66)',
-              },
-            ]}
-          >
-            <Image
-              source={require('@/assets/images/5 (1).png')}
-              resizeMode="contain"
-              style={{ width: imageSize * 0.86, height: imageSize * 0.86 }}
-            />
-          </Animated.View>
         </View>
       </LinearGradient>
     </Animated.View>
@@ -284,6 +253,8 @@ export default function HomeScreen() {
   const { colors, isDark } = useTheme();
   const direction = useDirection();
   const { width } = useWindowDimensions();
+  const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
+  const { data: userProfile } = useUserProfile(isLoggedIn);
 
   const compact = width < 420;
   const tablet = width >= 700;
@@ -293,8 +264,10 @@ export default function HomeScreen() {
   const cardGap = compact ? 9 : 12;
   const cardSize = Math.floor((contentWidth - cardGap * (columns - 1)) / columns);
   const bannerImageSize = compact ? 78 : tablet ? 126 : 98;
-  const heroImageSize = compact ? 88 : tablet ? 118 : 102;
   const shopImageWidth = compact ? 94 : tablet ? 154 : 122;
+  const displayName = isLoggedIn
+    ? [userProfile?.firstName, userProfile?.lastName].filter(Boolean).join(' ') || userProfile?.phone
+    : undefined;
 
   const categories: Category[] = [
     {
@@ -437,6 +410,27 @@ export default function HomeScreen() {
       url: '/awareness',
       gradientColors: ['#f83600', '#fe8c00'],
     },
+    {
+      key: 'customersClub',
+      title: t('customersClub'),
+      icon: require('@/assets/images/usersmanage.png'),
+      url: '/customers-club',
+      gradientColors: ['#0284c7', '#38bdf8'],
+    },
+    {
+      key: 'healthSocietyClub',
+      title: t('healthSocietyClub'),
+      icon: require('@/assets/images/1.png'),
+      url: '/health-society-club',
+      gradientColors: ['#15803d', '#4ade80'],
+    },
+    {
+      key: 'bylaws',
+      title: t('header.termsAndConditions'),
+      icon: require('@/assets/images/article.png'),
+      url: '/bylaws',
+      gradientColors: ['#6d28d9', '#a78bfa'],
+    },
   ];
 
   const renderCategoryGrid = (items: Category[], baseDelay: number = 0) => (
@@ -475,7 +469,7 @@ export default function HomeScreen() {
 
   return (
     <View className="flex-1" style={{ backgroundColor: colors.background }}>
-      <Header />
+      <Header showHomeActions />
 
       <ScrollView
         className="flex-1"
@@ -490,7 +484,7 @@ export default function HomeScreen() {
             paddingTop: 16,
           }}
         >
-          <HomeHero compact={compact} imageSize={heroImageSize} />
+          <HomeHero compact={compact} displayName={displayName} />
 
           <View style={styles.section}>
             <SectionTitle
@@ -711,16 +705,16 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   heroContent: {
-    alignItems: 'center',
+    alignItems: 'stretch',
     flex: 1,
-    gap: 14,
-    justifyContent: 'space-between',
-    padding: 16,
+    justifyContent: 'center',
+    paddingHorizontal: 18,
+    paddingVertical: 16,
   },
   heroDescription: {
     fontFamily: 'IRANSans',
-    fontSize: 13,
-    lineHeight: 22,
+    fontSize: 12,
+    lineHeight: 20,
     marginTop: 7,
     maxWidth: 420,
   },
@@ -729,11 +723,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 18,
     marginBottom: 4,
-  },
-  heroImageWrap: {
-    alignItems: 'center',
-    borderRadius: 34,
-    justifyContent: 'center',
   },
   heroLine: {
     borderRadius: 14,
@@ -754,8 +743,8 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     fontFamily: 'IRANSans-Bold',
-    fontSize: 23,
-    lineHeight: 33,
+    fontSize: 21,
+    lineHeight: 30,
   },
   mainBanner: {
     alignItems: 'center',

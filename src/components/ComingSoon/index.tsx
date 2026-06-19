@@ -21,9 +21,17 @@ type ComingSoonProps = {
   title: string;
   icon?: keyof typeof Ionicons.glyphMap;
   accent?: string;
+  showBackButton?: boolean;
+  showReturnButton?: boolean;
 };
 
-export default function ComingSoon({ title, icon = 'sparkles-outline', accent }: ComingSoonProps) {
+export default function ComingSoon({
+  title,
+  icon = 'sparkles-outline',
+  accent,
+  showBackButton = true,
+  showReturnButton = true,
+}: ComingSoonProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const direction = useDirection();
@@ -73,7 +81,7 @@ export default function ComingSoon({ title, icon = 'sparkles-outline', accent }:
 
   return (
     <View className="flex-1" style={{ backgroundColor: colors.background }}>
-      <BackHeader title={title} />
+      <BackHeader title={title} showBackButton={showBackButton} />
       <ScrollView
         className="flex-1"
         style={{ backgroundColor: colors.background }}
@@ -139,7 +147,7 @@ export default function ComingSoon({ title, icon = 'sparkles-outline', accent }:
               </View>
             </LinearGradient>
 
-            <View className="p-5">
+            {showReturnButton && <View className="p-5">
               <Button
                 type="primary"
                 variant="outline"
@@ -155,7 +163,7 @@ export default function ComingSoon({ title, icon = 'sparkles-outline', accent }:
               >
                 {t('return')}
               </Button>
-            </View>
+            </View>}
           </View>
         </Animated.View>
       </ScrollView>

@@ -4,7 +4,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BackHeader, Button, Modal, OtpInput } from '@/components';
 import ChooseCurrentRole from '@/components/Auth/ChooseCurrentRole';
 import { useLogin } from '@/lib/hooks/auth/useLogin';
@@ -32,7 +31,6 @@ export default function VerificationScreen() {
   const dispatch = useDispatch<AppDispatch>();
   const { colors, isDark } = useTheme();
   const direction = useDirection();
-  const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ type: 'login' | 'register' }>();
   const isLogin = params.type === 'login';
 
@@ -144,12 +142,12 @@ export default function VerificationScreen() {
   const remainingTime = formatCountdown(expiration, toastLanguage);
 
   return (
-    <View className="flex-1" style={{ paddingTop: insets.top, backgroundColor: colors.background }}>
+    <View className="flex-1" style={{ backgroundColor: colors.background }}>
       <BackHeader title={t('verifyCode')} />
 
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ padding: 18, paddingBottom: 32, flexGrow: 1, justifyContent: 'center' }}
+        contentContainerStyle={{ padding: 18, paddingTop: 24, paddingBottom: 32, flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
       >
         <View
