@@ -2,7 +2,13 @@
   "expo": {
     "name": "سلام",
     "slug": "helsan-native",
-    "version": "1.0.0",
+    "version": "1.0.1",
+    "updates": {
+      "url": "https://u.expo.dev/81d67089-9133-4446-8dca-9877b70f4488"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "orientation": "portrait",
     "icon": "./src/assets/images/icon.png",
     "scheme": "salam",

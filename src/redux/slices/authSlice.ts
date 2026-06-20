@@ -1,10 +1,8 @@
 // src/redux/slices/authSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
 import { AuthRoleState, AuthState, LoginStep, UserRole } from '@/types/auth.types';
 import config from '@/config';
-import endpoints from '@/config/endpoints';
 
 const initialState: AuthState = {
   loading: false,
@@ -116,44 +114,9 @@ export const restoreAuthSession = () => async (dispatch: any) => {
     const accessToken = await AsyncStorage.getItem(config.userAccessToken);
     const refreshToken = await AsyncStorage.getItem(config.userRefreshToken);
 
-    if (refreshToken) {
-      try {
-        const response = await axios.post(
-          `${config.apiUrl}${endpoints.getToken}`,
-          { refreshToken },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'X-App-Client': 'phone',
-            },
-            timeout: 15000,
-          },
-        );
-        const refreshedAccessToken =
-          response.data?.data?.accessToken ??
-          response.data?.accessToken ??
-          response.headers?.authorization?.replace(/^Bearer\s+/i, '') ??
-          response.headers?.Authorization?.replace(/^Bearer\s+/i, '');
-
-        if (refreshedAccessToken) {
-          await AsyncStorage.setItem(config.userAccessToken, refreshedAccessToken);
-          dispatch(restoreSession({ accessToken: refreshedAccessToken, refreshToken }));
-          console.log('[AUTH] Session restored with refreshed token');
-          return;
-        }
-      } catch (refreshError) {
-        console.warn('[AUTH] Startup token refresh failed:', refreshError);
-        await AsyncStorage.multiRemove([
-          config.userAccessToken,
-          config.userRefreshToken,
-        ]);
-        return;
-      }
-    }
-
     if (accessToken && refreshToken) {
       dispatch(restoreSession({ accessToken, refreshToken }));
-      console.log('✅ [AUTH] Session restored');
+      console.log('✅ [AUTH] Session restored from storage');
     } else {
       console.log('ℹ️ [AUTH] No session to restore');
     }

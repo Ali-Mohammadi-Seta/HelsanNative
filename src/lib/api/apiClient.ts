@@ -2,6 +2,8 @@ import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { router } from 'expo-router';
 import { getAccessToken, getRefreshToken, removeTokens, saveAccessToken } from '../auth/tokenStorage';
 import config from '@/config';
+import { store } from '@/redux/store';
+import { logout } from '@/redux/slices/authSlice';
 
 // --- Configuration ---
 const BASE_URL = config.apiUrl;
@@ -136,8 +138,21 @@ apiClient.interceptors.response.use(
       return apiClient(originalRequest);
     } catch (refreshError) {
       processQueue(refreshError as Error, null);
-      await removeTokens();
-      router.replace('/(auth)');
+
+      // Only wipe session and force logout if the server explicitly rejected the refresh token (400, 401, or 403)
+      const isAuthError =
+        axios.isAxiosError(refreshError) &&
+        refreshError.response &&
+        [400, 401, 403].includes(refreshError.response.status);
+
+      if (isAuthError) {
+        console.warn('❌ [API] Token refresh failed with auth error. Logging out...', refreshError.response?.status);
+        store.dispatch(logout());
+        router.replace('/(auth)');
+      } else {
+        console.warn('⚠️ [API] Token refresh failed due to network/server error. Session retained.', refreshError);
+      }
+
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;

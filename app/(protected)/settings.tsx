@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { useDispatch } from 'react-redux';
+import Constants from 'expo-constants';
 
 export default function SettingsScreen() {
   const { t, i18n } = useTranslation();
@@ -107,7 +108,7 @@ export default function SettingsScreen() {
               </Text>
             </View>
             <Text style={{ color: colors.textSecondary, fontFamily: 'IRANSans', fontSize: 13 }}>
-              1.0.0
+              {Constants.expoConfig?.version ?? '1.0.0'}
             </Text>
           </View>
         </View>

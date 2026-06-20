@@ -143,7 +143,7 @@ export default function ProfileScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View
-            className="rounded-3xl overflow-hidden border"
+            className="rounded-3xl overflow-hidden border mb-5"
             style={{ backgroundColor: isDark ? colors.card : '#ffffff', borderColor: colors.border }}
           >
             <LinearGradient
@@ -194,6 +194,14 @@ export default function ProfileScreen() {
               </Button>
             </View>
           </View>
+
+          <MenuItem
+            title={text.settings}
+            subtitle={text.settingsSub}
+            icon="settings-outline"
+            color="#6366f1"
+            onPress={() => router.push('/(protected)/settings')}
+          />
         </ScrollView>
       </View>
     );
