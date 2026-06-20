@@ -1,8 +1,6 @@
 import { BackHeader, Button, SkeletonList } from '@/components';
 import { useLogout, useUserProfile } from '@/lib/api/useAuth';
-import { removeTokens } from '@/lib/auth/tokenStorage';
 import { useDirection } from '@/lib/hooks/useDirection';
-import { setIsLoggedIn } from '@/redux/slices/authSlice';
 import { RootState } from '@/redux/store';
 import { useTheme } from '@/styles/theme';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,7 +9,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Image, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 
 type MenuItemProps = {
   title: string;
@@ -32,7 +30,6 @@ export default function ProfileScreen() {
   const { colors, isDark } = useTheme();
   const direction = useDirection();
   const { width } = useWindowDimensions();
-  const dispatch = useDispatch();
   const { isLoggedIn } = useSelector((state: RootState) => state.auth);
   const { data: userProfile, isLoading: isProfileLoading } = useUserProfile(isLoggedIn);
   const logoutMutation = useLogout();
@@ -67,10 +64,8 @@ export default function ProfileScreen() {
         onPress: async () => {
           try {
             await logoutMutation.mutateAsync();
-          } finally {
-            await removeTokens();
-            dispatch(setIsLoggedIn(false));
-            router.replace('/(tabs)/home');
+          } catch {
+            // Cleanup still happens in the logout mutation onSettled handler.
           }
         },
       },

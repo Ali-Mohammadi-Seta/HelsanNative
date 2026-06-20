@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import React, { useMemo, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { MotiView } from 'moti';
 
 type TicketFilter = 'all' | SupportTicketStatus;
 
@@ -75,7 +76,7 @@ export default function SupportScreen() {
     title: direction.isRTL ? 'پشتیبانی' : 'Support',
     heroTitle: direction.isRTL ? 'چطور می‌توانیم کمک کنیم؟' : 'How can we help?',
     heroSub: direction.isRTL
-      ? 'درخواست‌های خود را ثبت کنید و پاسخ تیم پشتیبانی را همین‌جا دنبال کنید.'
+      ? 'درخواست های خورد را در این قسمت می توانید ثبت کنید.'
       : 'Create requests and follow replies from the support team here.',
     newTicket: direction.isRTL ? 'تیکت جدید' : 'New ticket',
     tickets: direction.isRTL ? 'تیکت‌های شما' : 'Your tickets',
@@ -203,19 +204,37 @@ export default function SupportScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View
-          className="rounded-2xl p-5 mb-4"
-          style={{ backgroundColor: isDark ? colors.card : '#ffffff' }}
+          className="rounded-2xl pb-8 p-4 mb-3 border"
+          style={{ backgroundColor: isDark ? colors.card : '#ffffff', borderColor: colors.border }}
         >
-          <View className="items-center mb-3" style={direction.row}>
-            <View className="w-12 h-12 rounded-2xl items-center justify-center bg-primary/15">
-              <Ionicons name="headset-outline" size={26} color={colors.primary} />
+          <View className="items-center mb-8" style={direction.row}>
+            <View className="w-11 h-11 rounded-2xl items-center justify-center bg-primary/15">
+              <Ionicons name="headset-outline" size={22} color={colors.primary} />
             </View>
             <View className="flex-1 mx-3" style={direction.startItems}>
-              <Text style={{ color: colors.text, fontFamily: 'IRANSans-Bold', fontSize: 18, ...direction.text }}>
+              <Text style={{ color: colors.text, fontFamily: 'IRANSans-Bold', fontSize: 15, ...direction.text }}>
                 {text.heroTitle}
               </Text>
-              <Text style={{ color: colors.textSecondary, fontFamily: 'IRANSans', fontSize: 13, lineHeight: 22, ...direction.text }}>
+              <Text style={{ color: colors.textSecondary, fontFamily: 'IRANSans', fontSize: 11, lineHeight: 18, ...direction.text }} numberOfLines={2}>
                 {text.heroSub}
+              </Text>
+            </View>
+          </View>
+          <View className="mb-3 flex-row gap-2" style={{ flexDirection: direction.isRTL ? 'row-reverse' : 'row' }}>
+            <View className="flex-1 rounded-xl p-2.5" style={{ backgroundColor: isDark ? colors.surface : '#f8fafc' }}>
+              <Text style={{ color: colors.textSecondary, fontFamily: 'IRANSans', fontSize: 11, ...direction.text }}>
+                {text.tickets}
+              </Text>
+              <Text style={{ color: colors.text, fontFamily: 'IRANSans-Bold', fontSize: 15, marginTop: 1, ...direction.text }}>
+                {tickets.length}
+              </Text>
+            </View>
+            <View className="flex-1 rounded-xl p-2.5" style={{ backgroundColor: isDark ? colors.surface : '#f8fafc' }}>
+              <Text style={{ color: colors.textSecondary, fontFamily: 'IRANSans', fontSize: 11, ...direction.text }}>
+                {text.open}
+              </Text>
+              <Text style={{ color: colors.success, fontFamily: 'IRANSans-Bold', fontSize: 15, marginTop: 1, ...direction.text }}>
+                {tickets.filter((ticket) => ticket.status !== 'closed').length}
               </Text>
             </View>
           </View>
@@ -229,12 +248,13 @@ export default function SupportScreen() {
           </Button>
         </View>
 
-        <View className="mb-4">
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: 8, flexDirection: direction.isRTL ? 'row-reverse' : 'row' }}
-          >
+        <View
+          className="mb-4 flex-row flex-wrap gap-2"
+          style={{
+            flexDirection: direction.isRTL ? 'row-reverse' : 'row',
+            justifyContent: direction.isRTL ? 'flex-start' : 'flex-start',
+          }}
+        >
             {filters.map((item) => {
               const active = item.key === filter;
               return (
@@ -261,7 +281,6 @@ export default function SupportScreen() {
                 </TouchableOpacity>
               );
             })}
-          </ScrollView>
         </View>
 
         <Text style={{ color: colors.text, fontFamily: 'IRANSans-Bold', fontSize: 16, marginBottom: 10, ...direction.text }}>

@@ -506,5 +506,7 @@
   "vitalSigns": "Vital Signs",
   "patientInfo": "Patient Info",
   "name": "Name",
-  "forgotPassword": "Forgot your password?"
+  "forgotPassword": "Forgot your password?",
+  "healthSummary": "Health Summary",
+  "smoker": "Smoker"
 }

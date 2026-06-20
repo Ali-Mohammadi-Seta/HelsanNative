@@ -12,6 +12,9 @@ const config = {
   consultationSsoUrl:
     extra?.consultationSsoUrl ||
     'https://consultation.inhso.ir/launch',
+  consultationLaunchUrl:
+    extra?.consultationLaunchUrl ||
+    'https://consultation.inhso.ir/launch',
   sepehrSalamatSsoUrl:
     extra?.sepehrSalamatSsoUrl ||
     'https://inhs.isikato.ir/launch',

@@ -1,6 +1,8 @@
 // src/hooks/api/useAuth.ts
 import { apiService } from '@/lib/api/apiService';
 import { removeTokens } from '@/lib/auth/tokenStorage';
+import { logout as logoutAction } from '@/redux/slices/authSlice';
+import { useAppDispatch } from '@/redux/hooks';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 
@@ -89,12 +91,14 @@ export const useUserProfile = (enabled = true) => {
 
 export const useLogout = () => {
   const queryClient = useQueryClient();
+  const dispatch = useAppDispatch();
 
   return useMutation({
     mutationFn: apiService.logout,
-    onSuccess: async () => {
+    onSettled: async () => {
       await removeTokens();
       queryClient.clear(); // Clear all cache
+      dispatch(logoutAction());
       router.replace('/(tabs)/home');
     },
   });

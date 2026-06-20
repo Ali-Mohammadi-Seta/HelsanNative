@@ -154,7 +154,7 @@ const buildConsultationProviderUrl = (
   provider: ProviderListItem,
 ) => {
   const providerId = getProviderId(provider);
-  const launchUrl = config.consultationSsoUrl?.trim();
+  const launchUrl = config.consultationLaunchUrl?.trim();
   if (!providerId || !launchUrl) return null;
 
   const providerPath =
@@ -291,7 +291,13 @@ export default function ProvidersDirectory({ providerType }: { providerType: Pro
             </TouchableOpacity>
 
             {filterOpen && (
-              <View className="rounded-3xl p-4 mb-4" style={{ backgroundColor: isDark ? colors.card : '#ffffff' }}>
+              <MotiView
+                from={{ opacity: 0, translateY: -8, scale: 0.98 }}
+                animate={{ opacity: 1, translateY: 0, scale: 1 }}
+                transition={{ type: 'timing', duration: 180 }}
+                className="rounded-3xl p-4 mb-4"
+                style={{ backgroundColor: isDark ? colors.card : '#ffffff' }}
+              >
                 {copy.filters.map((filter) => (
                   <FloatingInput
                     key={filter.key}
@@ -315,7 +321,7 @@ export default function ProvidersDirectory({ providerType }: { providerType: Pro
                     </Button>
                   )}
                 </View>
-              </View>
+              </MotiView>
             )}
 
             <View className="mb-3" style={direction.startItems}>
@@ -391,7 +397,7 @@ export default function ProvidersDirectory({ providerType }: { providerType: Pro
   );
 }
 
-function ProviderCard({
+const ProviderCard = React.memo(function ProviderCard({
   provider,
   providerType,
   copy,
@@ -506,7 +512,7 @@ function ProviderCard({
       </View>
     </MotiView>
   );
-}
+});
 
 function InfoChip({
   label,

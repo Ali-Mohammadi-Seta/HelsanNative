@@ -13,10 +13,9 @@ export { SkeletonBox, SkeletonCard, SkeletonList } from './Skeleton';
 export { default as Questionnaire } from './EMR/Questionnaire';
 export { default as MyHealthInfo } from './EMR/MyHealthInfo';
 
-export { default as HealthSummary } from './EMR/components/HealthSummary';
-export { default as VitalSignCard } from './EMR/components/VitalSignCard';
-export { default as InfoSection } from './EMR/components/InfoSection';
-export { default as DiagnosisCard } from './EMR/components/DiagnosisCard';
-export { default as AllergiesCard } from './EMR/components/AllergiesCard';
-export { default as MedicationsCard } from './EMR/components/MedicationsCard';
-
+// export { default as HealthSummary } from './EMR/components/HealthSummary';
+// export { default as VitalSignCard } from './EMR/components/VitalSignCard';
+// export { default as InfoSection } from './EMR/components/InfoSection';
+// export { default as DiagnosisCard } from './EMR/components/DiagnosisCard';
+// export { default as AllergiesCard } from './EMR/components/AllergiesCard';
+// export { default as MedicationsCard } from './EMR/components/MedicationsCard';

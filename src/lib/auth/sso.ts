@@ -34,6 +34,13 @@ const stringFrom = (value: unknown): string | null => {
   return trimmed.length > 0 ? trimmed : null;
 };
 
+const bearerTokenFrom = (value: unknown): string | null => {
+  const token = stringFrom(value);
+  if (!token) return null;
+  const match = token.match(/^Bearer\s+(.+)$/i);
+  return match?.[1]?.trim() || token;
+};
+
 const responseCandidates = (responseBody: unknown): UnknownRecord[] => {
   const candidates: UnknownRecord[] = [];
 
@@ -46,6 +53,10 @@ const responseCandidates = (responseBody: unknown): UnknownRecord[] => {
       if (isRecord(responseBody.data.data)) {
         candidates.push(responseBody.data.data);
       }
+    }
+
+    if (isRecord(responseBody.headers)) {
+      candidates.push(responseBody.headers);
     }
   }
 
@@ -71,7 +82,9 @@ export const getAuthTokens = (
     accessToken =
       accessToken ||
       stringFrom(candidate.accessToken) ||
-      stringFrom(candidate.access_token);
+      stringFrom(candidate.access_token) ||
+      bearerTokenFrom(candidate.authorization) ||
+      bearerTokenFrom(candidate.Authorization);
     refreshToken =
       refreshToken ||
       stringFrom(candidate.refreshToken) ||

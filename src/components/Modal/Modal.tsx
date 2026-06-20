@@ -18,7 +18,6 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   withTiming,
-  runOnJS,
 } from 'react-native-reanimated';
 import CustomButton from '../Button';
 
@@ -76,15 +75,15 @@ const Modal: React.FC<CustomModalProps> = ({
   const shouldShowClose = closable ?? showClose;
   const shouldCloseOnOverlayClick = maskClosable ?? closeOnOverlayClick;
 
-  const translateY = useSharedValue(100);
+  const translateY = useSharedValue(24);
   const opacity = useSharedValue(0);
   const overlayOpacity = useSharedValue(0);
 
   useEffect(() => {
     if (open) {
-      overlayOpacity.value = withTiming(1, { duration: 200 });
-      translateY.value = withSpring(0, { damping: 20, stiffness: 200 });
-      opacity.value = withTiming(1, { duration: 200 });
+      overlayOpacity.value = withTiming(1, { duration: 120 });
+      translateY.value = withSpring(0, { damping: 24, stiffness: 260 });
+      opacity.value = withTiming(1, { duration: 120 });
     }
   }, [open, translateY, opacity, overlayOpacity]);
 
@@ -163,8 +162,8 @@ const Modal: React.FC<CustomModalProps> = ({
               styles.modalContent,
               shadows.xl,
               {
-                backgroundColor: isDark ? colors.glass : 'rgba(255,255,255,0.9)',
-                borderColor: colors.glassBorder,
+                backgroundColor: isDark ? colors.card : '#ffffff',
+                borderColor: colors.border,
                 borderWidth: 1,
                 width: sizeWidths[size],
               },
@@ -261,6 +260,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalWrapper: {
+    alignItems: 'center',
     flex: 1,
     justifyContent: 'flex-start',
     padding: 20,
@@ -269,6 +269,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   modalContent: {
+    alignSelf: 'center',
     borderRadius: 24,
     maxHeight: '90%',
     overflow: 'hidden',

@@ -48,6 +48,8 @@ export const removeTokens = async (): Promise<void> => {
     await AsyncStorage.multiRemove([
       config.userAccessToken,
       config.userRefreshToken,
+      config.userIsikatoToken,
+      config.frontToken,
       'currentRole',
       'pendingSsoRedirectUrl',
     ]);

@@ -1,50 +1,63 @@
+// src/components/EMR/components/DiagnosisCard.tsx
 import React from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import InfoSection from './InfoSection';
+import { useTheme } from '@/styles/theme';
+import { useDirection } from '@/lib/hooks/useDirection';
+import EMRSectionCard from './EMRSectionCard';
+import TableCard from './TableCard';
+import moment from 'moment-jalaali';
+
+interface Disease {
+  id?: string | number;
+  createdAt: string;
+  name: string;
+  severity?: string;
+}
 
 interface DiagnosisCardProps {
-  patientInfo: any;
+  patientInfo?: { diseases?: Disease[] };
 }
 
 const DiagnosisCard: React.FC<DiagnosisCardProps> = ({ patientInfo }) => {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const direction = useDirection();
+  const diseases = patientInfo?.diseases ?? [];
 
-  const diagnosisData = patientInfo?.diagnosis?.map((item: any) => ({
-    name: item.diagnosisName || item.name,
-    description: item.description || '',
-    date: item.date || item.createdAt,
-    doctor: item.doctorName || '',
-  }));
+  const columns = [
+    {
+      key: 'createdAt',
+      title: t('doctorVisitDate'),
+      flex: 1.4,
+      render: (val: string) => {
+        try {
+          return moment(val).format('jYYYY/jMM/jDD');
+        } catch {
+          return val || '-';
+        }
+      },
+    },
+    { key: 'name', title: t('diseaseName'), flex: 1.2 },
+    { key: 'severity', title: t('diseaseSeverity'), flex: 1 },
+  ];
 
   return (
-    <InfoSection
-      title={t('diagnosis')}
-      data={diagnosisData}
-      emptyMessage={t('noDiagnosis')}
-      renderItem={(item) => (
-        <View className="py-3 border-b border-divider last:border-b-0">
-          <Text className="text-foreground font-medium">{item.name}</Text>
-          {item.description && (
-            <Text className="text-foreground-secondary text-sm mt-1">
-              {item.description}
-            </Text>
-          )}
-          <View className="flex-row justify-between mt-2">
-            {item.doctor && (
-              <Text className="text-foreground-tertiary text-xs">
-                {t('doctor')}: {item.doctor}
-              </Text>
-            )}
-            {item.date && (
-              <Text className="text-foreground-tertiary text-xs">
-                {item.date}
-              </Text>
-            )}
-          </View>
-        </View>
-      )}
-    />
+    <EMRSectionCard
+      title={t('bimariha')}
+      icon="medical-outline"
+      iconColor="#ef4444"
+      badge={diseases.length}
+      delay={100}
+      isEmpty={diseases.length === 0}
+      emptyText={t('NoData')}
+    >
+      <TableCard
+        columns={columns}
+        data={diseases}
+        keyExtractor={(item, idx) => item.id?.toString() || item.name || String(idx)}
+      />
+    </EMRSectionCard>
   );
 };
 

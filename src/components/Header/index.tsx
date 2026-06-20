@@ -4,6 +4,7 @@ import { RootState } from '@/redux/store';
 import { useTheme, shadows } from '@/styles/theme';
 import { changeLanguage } from '@/translations/i18n';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import React, { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, Pressable, Text, View } from 'react-native';
@@ -139,7 +140,7 @@ const Header: React.FC<HeaderProps> = ({ title, showBack, onBackPress, showHomeA
 
       {/* Notifications */}
       {isLoggedIn && (
-        <ActionButton onPress={() => {}}>
+        <ActionButton onPress={() => router.push('/(protected)/support' as any)}>
           <View
             style={{
               width: 34,

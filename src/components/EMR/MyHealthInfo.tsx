@@ -1,109 +1,205 @@
-import React from 'react';
-import { View, ScrollView, Text } from 'react-native';
+// src/components/EMR/MyHealthInfo.tsx
+import React, { useState } from 'react';
+import {
+  View,
+  ScrollView,
+  Text,
+  StyleSheet,
+  RefreshControl,
+} from 'react-native';
 import { useTranslation } from 'react-i18next';
+// import { MotiView } from 'moti';
+import Animated, {
+  FadeInDown,
+} from 'react-native-reanimated';
 import { useTheme } from '@/styles/theme';
+import { useDirection } from '@/lib/hooks/useDirection';
 import { useGetUserHealthInfo } from '@/lib/hooks/emr/useGetUserHealthInfo';
-import DiagnosisCard from './components/DiagnosisCard';
-import AllergiesCard from './components/AllergiesCard';
-import MedicationsCard from './components/MedicationsCard';
-import HealthSummary from './components/HealthSummary';
-import VitalSignCard from './components/VitalSignCard';
 import { useGetEmrServices } from '@/lib/hooks/auth/useGetEmrServices';
 import { SkeletonList } from '@/components/Skeleton';
 
+import PatientInfoCard from './components/PatientInfoCard';
+import HealthSummaryCard from './components/HealthSummaryCard';
+import VitalSignsSection from './components/VitalSignsSection';
+import VitalChartModal from './components/VitalChartModal';
+import DiagnosisCard from './components/DiagnosisCard';
+import AllergiesCard from './components/AllergiesCard';
+import MedicationsCard from './components/MedicationsCard';
+import SurgeriesCard from './components/SurgeriesCard';
+import VaccinationsCard from './components/VaccinationsCard';
+import AddictionsCard from './components/AddictionsCard';
+import FamilialDiseaseCard from './components/FamilialDiseaseCard';
+import PregnanciesCard from './components/PregnanciesCard';
+import ExaminesCard from './components/ExaminesCard';
+import ParaServicesCard from './components/ParaServicesCard';
+import { useGetUserProfile } from '@/lib/hooks/auth/useGetUserProfile';
+
+export type ChartType =
+  | 'bloodPressure'
+  | 'temperature'
+  | 'heartRate'
+  | 'respiratory'
+  | 'bloodSugar'
+  | 'bmi';
+
 const MyHealthInfo: React.FC = () => {
   const { t } = useTranslation();
-  const { isDark } = useTheme();
-  const { userHealthInfo, isLoading: isLoadingHealth } = useGetUserHealthInfo();
-  const { userServices, isGettingServices } = useGetEmrServices();
-  const healthData = (userHealthInfo as any)?.data ?? userHealthInfo as any;
-  const servicesData = (userServices as any)?.data ?? userServices;
+  const { colors, isDark } = useTheme();
+  const direction = useDirection();
+
+  const {
+    userHealthInfo,
+    isLoading: isLoadingHealth,
+    refetch: refetchHealth,
+  } = useGetUserHealthInfo();
+
+  const {
+    userServices,
+    isGettingServices,
+    refetch: refetchServices,
+  } = useGetEmrServices();
+
+  // Fixed: useGetUserProfile now returns { userProfile, ... }
+  const { data: userProfile } = useGetUserProfile();
+
+  const [chartModal, setChartModal] = useState<{
+    open: boolean;
+    type: ChartType | null;
+  }>({ open: false, type: null });
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const healthData =
+    (userHealthInfo as any)?.data ?? (userHealthInfo as any) ?? {};
+  const servicesData =
+    (userServices as any)?.data ?? (userServices as any) ?? {};
+  const vitalSigns: any[] = healthData?.vitalSigns ?? [];
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([refetchHealth(), refetchServices()]);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const openChart = (type: ChartType) =>
+    setChartModal({ open: true, type });
+
+  const closeChart = () =>
+    setChartModal({ open: false, type: null });
 
   if (isLoadingHealth || isGettingServices) {
     return (
-      <View className="flex-1 p-4">
-        <SkeletonList count={5} rows={3} avatar />
+      <View
+        style={{ flex: 1, padding: 16, backgroundColor: colors.background }}
+      >
+        <SkeletonList count={6} rows={3} avatar />
       </View>
     );
   }
 
   return (
-    <ScrollView
-      className="flex-1 bg-background"
-      showsVerticalScrollIndicator={false}
-    >
-      <View className="p-4">
-        {/* Patient Info Card */}
-        <View className="bg-card rounded-xl p-4 mb-4 shadow-sm">
-          <Text className="text-foreground text-lg font-bold mb-3">
-            {t('patientInfo')}
+    <>
+      <ScrollView
+        style={{ flex: 1, backgroundColor: isDark ? colors.background : '#f4f7f4' }}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
+      >
+        {/* Page title */}
+        <Animated.View
+          entering={FadeInDown.duration(280).springify().damping(18)}
+          style={[
+            styles.pageTitleRow,
+            { flexDirection: direction.isRTL ? 'row-reverse' : 'row' },
+          ]}
+        >
+          <View
+            style={[
+              styles.pageTitleBar,
+              { backgroundColor: colors.primary },
+            ]}
+          />
+          <Text
+            style={[
+              styles.pageTitle,
+              { color: colors.text, writingDirection: direction.dir },
+            ]}
+          >
+            {direction.isRTL ? 'اطلاعات پزشکی من' : 'My Medical Records'}
           </Text>
-          <PatientInfoRow
-            label={t('name')}
-            value={healthData?.name || '-'}
-          />
-          <PatientInfoRow
-            label={t('nationalId')}
-            value={healthData?.nationalId || '-'}
-          />
-          <PatientInfoRow
-            label={t('age')}
-            value={healthData?.age || '-'}
-          />
-        </View>
+        </Animated.View>
+
+        {/* Patient Info */}
+        <PatientInfoCard
+          patientInfo={healthData}
+          userProfile={userProfile as any}
+        />
 
         {/* Health Summary */}
-        <HealthSummary patientInfo={healthData} />
+        <HealthSummaryCard patientInfo={healthData} />
 
-        {/* Vital Signs Grid */}
-        <Text className="text-foreground text-lg font-bold mb-3">
-          {t('vitalSigns')}
-        </Text>
-        <View className="flex-row flex-wrap justify-between mb-4">
-          <VitalSignCard
-            title={t('bloodPressure')}
-            value={healthData?.vitalSigns?.bloodPressure || '-'}
-            icon="heart"
-            unit="mmHg"
-            className="w-[48%] mb-3"
-          />
-          <VitalSignCard
-            title={t('temp')}
-            value={healthData?.vitalSigns?.temperature || '-'}
-            icon="thermometer"
-            unit="°C"
-            className="w-[48%] mb-3"
-          />
-          <VitalSignCard
-            title={t('heartBeats')}
-            value={healthData?.vitalSigns?.heartRate || '-'}
-            icon="activity"
-            unit="bpm"
-            className="w-[48%] mb-3"
-          />
-          <VitalSignCard
-            title={t('bloodsugar')}
-            value={healthData?.vitalSigns?.bloodSugar || '-'}
-            icon="droplet"
-            unit="mg/dl"
-            className="w-[48%] mb-3"
-          />
-        </View>
+        {/* Vital Charts */}
+        <VitalSignsSection
+          vitalSigns={vitalSigns}
+          onChartPress={openChart}
+        />
 
-        {/* Medical Info Sections */}
+        {/* Expandable sections — each has its own stagger delay */}
         <DiagnosisCard patientInfo={healthData} />
         <AllergiesCard patientInfo={healthData} />
         <MedicationsCard medications={servicesData} />
-      </View>
-    </ScrollView>
+        <SurgeriesCard patientInfo={healthData} />
+        <VaccinationsCard patientInfo={healthData} />
+        <AddictionsCard patientInfo={healthData} />
+        <FamilialDiseaseCard patientInfo={healthData} />
+        <PregnanciesCard patientInfo={healthData} />
+        <ExaminesCard services={servicesData} />
+        <ParaServicesCard services={servicesData} />
+
+        <View style={{ height: 40 }} />
+      </ScrollView>
+
+      {/* Chart Modal */}
+      <VitalChartModal
+        open={chartModal.open}
+        onClose={closeChart}
+        chartType={chartModal.type}
+        vitalSigns={vitalSigns}
+      />
+    </>
   );
 };
 
-const PatientInfoRow: React.FC<{ label: string; value: string }> = ({ label, value }) => (
-  <View className="flex-row justify-between py-2 border-b border-divider last:border-b-0">
-    <Text className="text-foreground-secondary">{label}</Text>
-    <Text className="text-foreground font-medium">{value}</Text>
-  </View>
-);
+const styles = StyleSheet.create({
+  content: {
+    padding: 16,
+    paddingBottom: 40,
+  },
+  pageTitleRow: {
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 16,
+  },
+  pageTitleBar: {
+    borderRadius: 2,
+    height: 22,
+    width: 4,
+  },
+  pageTitle: {
+    fontFamily: 'IRANSans-Bold',
+    fontSize: 18,
+    lineHeight: 28,
+  },
+});
 
 export default MyHealthInfo;

@@ -13,7 +13,7 @@ import Questionnaire from '@/components/EMR/Questionnaire';
 import MyHealthInfo from '@/components/EMR/MyHealthInfo';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
@@ -46,6 +46,7 @@ export default function MyEmrScreen() {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const direction = useDirection();
+  const tabsScrollRef = useRef<ScrollView>(null);
   const [activeTab, setActiveTab] = useState<EmrTab>('health-record');
   const { questionnaireStatus, isLoading: isLoadingStatus } = useGetQuestionnaireStatus();
   const { isLoading: isLoadingHealth } = useGetUserHealthInfo();
@@ -100,8 +101,12 @@ export default function MyEmrScreen() {
 
       <View style={{ backgroundColor: colors.background }}>
         <ScrollView
+          ref={tabsScrollRef}
           horizontal
           showsHorizontalScrollIndicator={false}
+          onContentSizeChange={() => {
+            if (direction.isRTL) tabsScrollRef.current?.scrollToEnd({ animated: false });
+          }}
           contentContainerStyle={{
             paddingHorizontal: 16,
             paddingVertical: 12,
@@ -232,9 +237,28 @@ function PrescriptionList({ mode }: { mode: 'issued' | 'delivered' }) {
           </View>
         ) : (
           <View>
-            <PrescriptionDetailRow label={t('prescriptionCode', { defaultValue: direction.isRTL ? 'کد نسخه' : 'Prescription code' })} value={detailPrescription?.prescHead || detailPrescription?.eid || '-'} />
+            <View
+              className="rounded-3xl p-4 mb-3 border"
+              style={{ backgroundColor: isDark ? colors.surface : '#f8fafc', borderColor: colors.border }}
+            >
+              <View className="items-start" style={direction.row}>
+                <View className="w-12 h-12 rounded-2xl items-center justify-center bg-primary/15">
+                  <Ionicons name="receipt-outline" size={24} color={colors.primary} />
+                </View>
+                <View className="flex-1 mx-3" style={direction.startItems}>
+                  <Text style={{ color: colors.textSecondary, fontFamily: 'IRANSans', fontSize: 11, ...direction.text }}>
+                    {t('presc', { defaultValue: direction.isRTL ? 'نسخه' : 'Prescription' })}
+                  </Text>
+                  <Text style={{ color: colors.text, fontFamily: 'IRANSans-Bold', fontSize: 17, lineHeight: 26, marginTop: 2, ...direction.text }}>
+                    {detailPrescription?.prescHead || detailPrescription?.eid || '-'}
+                  </Text>
+                  <Text style={{ color: colors.textSecondary, fontFamily: 'IRANSans', fontSize: 12, marginTop: 4, ...direction.text }}>
+                    {formatDate(detailPrescription?.createdAt)} · {detailPrescription?.prescriptionType || t('visit', { defaultValue: direction.isRTL ? 'ویزیت' : 'Visit' })}
+                  </Text>
+                </View>
+              </View>
+            </View>
             <PrescriptionDetailRow label={t('medicalId', { defaultValue: direction.isRTL ? 'کد نظام پزشکی' : 'Medical ID' })} value={detailPrescription?.nezamPezeshki || '-'} />
-            <PrescriptionDetailRow label={t('date', { defaultValue: direction.isRTL ? 'تاریخ' : 'Date' })} value={formatDate(detailPrescription?.createdAt)} />
             {detailPrescription?.description && (
               <PrescriptionDetailRow label={t('desc', { defaultValue: direction.isRTL ? 'توضیحات' : 'Description' })} value={detailPrescription.description} />
             )}
@@ -246,15 +270,22 @@ function PrescriptionList({ mode }: { mode: 'issued' | 'delivered' }) {
               services.map((service: any, index: number) => (
                 <View
                   key={service._id || service.srvCode || index}
-                  className="rounded-xl p-3 mb-2"
-                  style={{ backgroundColor: isDark ? '#111827' : '#f9fafb' }}
+                  className="rounded-2xl p-3 mb-2 border"
+                  style={{ backgroundColor: isDark ? colors.surface : '#ffffff', borderColor: colors.border }}
                 >
-                  <Text style={{ color: colors.text, fontFamily: 'IRANSans-Bold', fontSize: 13, ...direction.text }}>
-                    {service.srvName || service.service?.srvName || service.label || '-'}
-                  </Text>
-                  <Text style={{ color: colors.textSecondary, fontFamily: 'IRANSans', fontSize: 12, marginTop: 4, ...direction.text }}>
-                    {t('count', { defaultValue: direction.isRTL ? 'تعداد' : 'Count' })}: {service.quantity ?? service.srvQty ?? service.requestCount ?? '-'}
-                  </Text>
+                  <View className="items-start" style={direction.row}>
+                    <View className="w-9 h-9 rounded-xl items-center justify-center bg-primary/15">
+                      <Ionicons name="medkit-outline" size={18} color={colors.primary} />
+                    </View>
+                    <View className="flex-1 mx-2" style={direction.startItems}>
+                      <Text style={{ color: colors.text, fontFamily: 'IRANSans-Bold', fontSize: 13, lineHeight: 22, ...direction.text }}>
+                        {service.srvName || service.service?.srvName || service.label || '-'}
+                      </Text>
+                      <Text style={{ color: colors.textSecondary, fontFamily: 'IRANSans', fontSize: 12, marginTop: 3, ...direction.text }}>
+                        {t('count', { defaultValue: direction.isRTL ? 'تعداد' : 'Count' })}: {service.quantity ?? service.srvQty ?? service.requestCount ?? '-'}
+                      </Text>
+                    </View>
+                  </View>
                 </View>
               ))
             ) : (
@@ -274,8 +305,8 @@ function PrescriptionDetailRow({ label, value }: { label: string; value: string 
   const direction = useDirection();
   return (
     <View
-      className="rounded-xl p-3 mb-2"
-      style={{ backgroundColor: isDark ? '#111827' : '#f9fafb' }}
+      className="rounded-2xl p-3 mb-2 border"
+      style={{ backgroundColor: isDark ? colors.surface : '#f9fafb', borderColor: colors.border }}
     >
       <Text style={{ color: colors.textSecondary, fontFamily: 'IRANSans', fontSize: 12, ...direction.text }}>
         {label}

@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { DimensionValue, StyleSheet, View, ViewStyle } from 'react-native';
 import { Skeleton } from 'moti/skeleton';
 import { useTheme } from '@/styles/theme';
+import { useDirection } from '@/lib/hooks/useDirection';
 
 type SkeletonBoxProps = {
   width?: ViewStyle['width'];
@@ -37,6 +38,7 @@ export function SkeletonCard({
   style?: ViewStyle;
 }) {
   const { colors, isDark } = useTheme();
+  const direction = useDirection();
 
   return (
     <View
@@ -49,9 +51,9 @@ export function SkeletonCard({
         style,
       ]}
     >
-      <View style={styles.row}>
+      <View style={[styles.row, { flexDirection: direction.isRTL ? 'row-reverse' : 'row' }]}>
         {avatar && <SkeletonBox width={58} height={58} radius={18} />}
-        <View style={styles.content}>
+        <View style={[styles.content, direction.startItems]}>
           {Array.from({ length: rows }).map((_, index) => (
             <SkeletonBox
               key={index}
@@ -93,7 +95,6 @@ const styles = StyleSheet.create({
   },
   row: {
     alignItems: 'center',
-    flexDirection: 'row',
     gap: 12,
   },
   content: {

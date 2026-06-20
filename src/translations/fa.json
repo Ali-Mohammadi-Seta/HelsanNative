@@ -505,5 +505,8 @@
     "password": "رمز عبور",
     "login": "ورود"
   },
-  "forgotPassword":"رمز عبور خود را فراموش کردید؟"
+  "forgotPassword": "رمز عبور خود را فراموش کردید؟",
+  "healthSummary": "خلاصه سلامت",
+  "patientInfo": "اطلاعات بیمار",
+  "smoker": "سیگاری"
 }

@@ -96,7 +96,7 @@ export default function DoctorsConsultationScreen() {
 
   const initialUrl = useMemo(() => {
     const url = typeof params.url === 'string' ? params.url.trim() : '';
-    return url || config.consultationSsoUrl;
+    return url || config.consultationLaunchUrl;
   }, [params.url]);
 
   const [webViewUrl, setWebViewUrl] = useState(initialUrl);

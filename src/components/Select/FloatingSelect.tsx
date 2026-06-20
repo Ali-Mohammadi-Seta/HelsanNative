@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
   Modal,
+  ScrollView,
   StyleSheet,
   Text,
   TextStyle,
@@ -12,8 +13,6 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
-import { BlurView } from 'expo-blur';
 
 export interface SelectOption {
   label: string;
@@ -52,6 +51,7 @@ const FloatingSelect: React.FC<FloatingSelectProps> = ({
   const { colors, isDark } = useTheme();
   const direction = useDirection();
   const [modalVisible, setModalVisible] = useState(false);
+  const [selectWidth, setSelectWidth] = useState<number | undefined>();
   const inputDir = dir ?? direction.dir;
   const isRTL = inputDir === 'rtl';
 
@@ -76,6 +76,7 @@ const FloatingSelect: React.FC<FloatingSelectProps> = ({
       <TouchableOpacity
         onPress={() => !disabled && setModalVisible(true)}
         disabled={disabled}
+        onLayout={(event) => setSelectWidth(event.nativeEvent.layout.width)}
         style={[
           styles.selectWrapper,
           {
@@ -179,16 +180,18 @@ const FloatingSelect: React.FC<FloatingSelectProps> = ({
           activeOpacity={1}
           onPress={() => setModalVisible(false)}
         >
-          <BlurView
-            intensity={15}
-            tint={isDark ? "dark" : "light"}
-            style={styles.modalOverlay}
+          <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            activeOpacity={1}
+            style={{ width: selectWidth, maxWidth: '100%', maxHeight: '70%' }}
           >
-          <TouchableOpacity activeOpacity={1} style={{ width: '100%', maxHeight: '70%' }}>
             <View
             style={[
               styles.modalContent,
-              { backgroundColor: isDark ? colors.card : colors.background },
+              {
+                backgroundColor: isDark ? colors.card : '#ffffff',
+                borderColor: colors.border,
+              },
             ]}
           >
             <Text
@@ -205,11 +208,13 @@ const FloatingSelect: React.FC<FloatingSelectProps> = ({
               {label || 'Select an option'}
             </Text>
 
-            <FlashList
-              data={options}
-              keyExtractor={(item) => String(item.value)}
-              renderItem={({ item }) => (
+            <ScrollView
+              style={styles.optionsList}
+              showsVerticalScrollIndicator={options.length > 6}
+            >
+              {options.map((item) => (
                 <TouchableOpacity
+                  key={String(item.value)}
                   onPress={() => handleSelect(item.value)}
                   style={[
                     styles.option,
@@ -251,11 +256,11 @@ const FloatingSelect: React.FC<FloatingSelectProps> = ({
                     />
                   )}
                 </TouchableOpacity>
-              )}
-            />
+              ))}
+            </ScrollView>
           </View>
           </TouchableOpacity>
-          </BlurView>
+          </View>
         </TouchableOpacity>
       </Modal>
     </View>
@@ -291,19 +296,24 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
     justifyContent: 'center',
+    alignItems: 'center',
     padding: 20,
   },
   modalContent: {
     borderRadius: 16,
-    padding: 20,
+    borderWidth: 1,
+    padding: 12,
     width: '100%',
-    flex: 1,
   },
   modalTitle: {
-    fontSize: 18,
-    marginBottom: 16,
+    fontSize: 15,
+    marginBottom: 10,
+    paddingHorizontal: 4,
+  },
+  optionsList: {
+    maxHeight: 320,
   },
   option: {
     paddingVertical: 12,

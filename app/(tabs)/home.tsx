@@ -476,6 +476,7 @@ export default function HomeScreen() {
         style={{ backgroundColor: colors.background }}
         contentContainerStyle={{ paddingBottom: 34 }}
         showsVerticalScrollIndicator={false}
+        removeClippedSubviews
       >
         <View
           style={{
@@ -591,9 +592,11 @@ export default function HomeScreen() {
                 >
                   {t('homePage.shopBannerDesc')}
                 </Text>
-                <Button type="primary" size="small" onPress={() => router.push('/pharmacies')}>
-                  {t('homePage.shopBannerButton')}
-                </Button>
+                <View className='w-full'>
+                  <Button type="primary" className={` flex w-1/2 ${direction.isRTL ? 'justify-end' : 'justify-start'}`} size="small" onPress={() => router.push('/pharmacies')}>
+                    {t('homePage.shopBannerButton')}
+                  </Button>
+                </View>
               </View>
               <View
                 style={[
@@ -632,7 +635,7 @@ export default function HomeScreen() {
             {renderCategoryGrid(thirdRowCategories, 460)}
           </View>
         </View>
-      <View className='h-24! '></View>
+        <View className='h-24! '></View>
 
       </ScrollView>
     </View>
