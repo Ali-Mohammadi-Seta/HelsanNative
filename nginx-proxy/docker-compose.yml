@@ -6,4 +6,5 @@ services:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
       - "8080:8080"
+      - "8081:8081"
     restart: unless-stopped

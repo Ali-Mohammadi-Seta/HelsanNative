@@ -21,6 +21,9 @@ expo-env.d.ts
 # Metro
 .metro-health-check*
 
+salam-consultation-front-dev
+helsan-front-ts-dev
+
 # debug
 npm-debug.*
 yarn-debug.*
