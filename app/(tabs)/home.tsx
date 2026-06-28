@@ -237,7 +237,7 @@ function HomeHero({
               <HeroAction
                 icon="videocam-outline"
                 label={t('homePage.consultationBannerButton')}
-                onPress={() => router.push('/(consultation)/panel/home')}
+                onPress={() => router.push('/doctors-consultation')}
               />
             </View>
           </View>
