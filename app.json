@@ -68,7 +68,7 @@
       "apiUrl": "http://192.168.1.69:8080/api",
       "behdashtCallbackUrl": "salam://health-ministry-callback",
       "consultationSsoUrl": "https://sso.inhso.ir/oidc/auth?client_id=client_1754117598828_b4e0885381f0f549&redirect_uri=https://consultation.inhso.ir/LoginFromSso&response_type=code&state=random-string&scope=openid%20profile%20email%20offline_access&resource=https://inhso.ir",
-      "consultationLaunchUrl": "https://consultation.inhso.ir/launch",
+      "consultationLaunchUrl": "http://192.168.1.69:3001/launch",
       "sepehrSalamatSsoUrl": "https://sso.inhso.ir/oidc/auth?client_id=client_1753181661291_29ef29cc769b9291&redirect_uri=https://inhs.isikato.ir/LoginFromSso&response_type=code&state=random-string&scope=openid%20profile%20email%20offline_access&resource=https://inhso.ir",
       "ssoLogoutUrl": "https://sso.inhso.ir/auth/logout",
       "router": {

@@ -10,14 +10,14 @@ const config = {
   pharmacyDomain: (path: string) => `https://inhs.isikato.ir/pharmacy/${path}/login`,
   behdashtCallbackUrl: extra?.behdashtCallbackUrl || 'salam://health-ministry-callback',
   consultationSsoUrl:
-    extra?.consultationSsoUrl ||
-    'https://consultation.inhso.ir/launch',
+    /* extra?.consultationSsoUrl || */
+    'http://192.168.1.69:3001/launch',
   consultationLaunchUrl:
-    extra?.consultationLaunchUrl ||
-    'https://consultation.inhso.ir/launch',
+    /* extra?.consultationLaunchUrl || */
+    'http://192.168.1.69:3001/launch',
   sepehrSalamatSsoUrl:
-    extra?.sepehrSalamatSsoUrl ||
-    'https://inhs.isikato.ir/launch',
+    /* extra?.sepehrSalamatSsoUrl || */
+    'http://192.168.1.69:3000/login',
   ssoLogoutUrl: extra?.ssoLogoutUrl || 'https://sso.inhso.ir/auth/logout',
   healthMinistryAuthorizeUrl: 'https://ssocore.behdasht.gov.ir/oauth2/authorize',
   healthMinistryClientId: 'salamhealth.ir',

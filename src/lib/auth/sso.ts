@@ -145,36 +145,39 @@ export const applyAuthResponse = async (
   }
 };
 
-export const getHealthMinistryRedirectUri = (): string =>
+export const getSsoRedirectUri = (): string =>
   config.behdashtCallbackUrl || ExpoLinking.createURL('/health-ministry-callback');
 
-export const buildHealthMinistryAuthUrl = (redirectUri = getHealthMinistryRedirectUri()): string => {
-  const params = new URLSearchParams({
-    response_type: 'code',
-    scope: 'openid profile',
-    client_id: config.healthMinistryClientId,
-    state: 'state1',
-    redirect_uri: redirectUri,
-  });
-
-  return `${config.healthMinistryAuthorizeUrl}?${params.toString()}`;
+export const buildSsoStartUrl = (redirectUri = getSsoRedirectUri()): string => {
+  const apiBaseUrl = String(config.apiUrl || '').replace(/\/+$/, '');
+  
+  // Note: Since React Native doesn't have full URL support for relative paths without origin,
+  // we manually construct it if necessary, or just use string concatenation.
+  return `${apiBaseUrl}${endpoints.ssoStart}?returnTo=${encodeURIComponent(redirectUri)}`;
 };
 
-export const startHealthMinistryAuth = async (): Promise<string | null> => {
-  const redirectUri = getHealthMinistryRedirectUri();
+export const startSsoAuth = async (): Promise<{ code?: string; error?: string; state?: string } | null> => {
+  const redirectUri = getSsoRedirectUri();
   const result = await WebBrowser.openAuthSessionAsync(
-    buildHealthMinistryAuthUrl(redirectUri),
+    buildSsoStartUrl(redirectUri),
     redirectUri
   );
 
   if (result.type !== 'success' || !result.url) return null;
 
   const parsed = ExpoLinking.parse(result.url);
-  const code = parsed.queryParams?.code;
-  return Array.isArray(code) ? stringFrom(code[0]) : stringFrom(code);
+  const code = Array.isArray(parsed.queryParams?.code) ? stringFrom(parsed.queryParams.code[0]) : stringFrom(parsed.queryParams?.code);
+  const error = Array.isArray(parsed.queryParams?.error) ? stringFrom(parsed.queryParams.error[0]) : stringFrom(parsed.queryParams?.error);
+  const state = Array.isArray(parsed.queryParams?.state) ? stringFrom(parsed.queryParams.state[0]) : stringFrom(parsed.queryParams?.state);
+  
+  return { 
+    code: code || undefined, 
+    error: error || undefined, 
+    state: state || undefined 
+  };
 };
 
-export const submitHealthMinistryCode = async (code: string): Promise<unknown> => {
-  const response = await apiClient.post(endpoints.healthGovRegister, { code });
+export const submitSsoCode = async (code: string, state?: string, error?: string): Promise<unknown> => {
+  const response = await apiClient.post(endpoints.ssoCallback, { code, state, error });
   return response.data;
 };

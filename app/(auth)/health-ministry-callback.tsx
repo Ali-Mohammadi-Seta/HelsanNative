@@ -5,25 +5,25 @@ import { useDispatch } from 'react-redux';
 import {
   applyAuthResponse,
   getSsoRedirectUrl,
-  submitHealthMinistryCode,
+  submitSsoCode,
 } from '@/lib/auth/sso';
 import type { AppDispatch } from '@/redux/store';
 import { showToast } from '@/lib/toast/showToast';
 
 export default function HealthMinistryCallback() {
-  const params = useLocalSearchParams<{ code?: string }>();
+  const params = useLocalSearchParams<{ code?: string, state?: string, error?: string }>();
   const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
     const handleCallback = async () => {
-      if (!params.code) {
+      if (!params.code && !params.error) {
         showToast({ type: 'error', message: 'Authorization code missing', fallback: 'Error', language: 'en' });
         router.replace('/(tabs)/home');
         return;
       }
 
       try {
-        const data = await submitHealthMinistryCode(params.code);
+        const data = await submitSsoCode(params.code || '', params.state, params.error);
         await applyAuthResponse(data, dispatch);
 
         showToast({ type: 'success', message: data, fallback: 'Success', language: 'fa' });

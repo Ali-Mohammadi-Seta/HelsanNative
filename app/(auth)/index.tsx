@@ -1,284 +1,155 @@
-import React, { useMemo, useState, useCallback, useEffect } from 'react';
-import { View, Text, Pressable, LayoutChangeEvent, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Pressable, ActivityIndicator, Modal } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useLocalSearchParams, router } from 'expo-router';
-import { shadows, useTheme } from '@/styles/theme';
+import { router } from 'expo-router';
+import { useDispatch } from 'react-redux';
+import { useTheme } from '@/styles/theme';
 import { BackHeader } from '@/components';
 import { useDirection } from '@/lib/hooks/useDirection';
-import LoginScreen from '@/screens/Auth/LoginScreen';
-import RegisterScreen from '@/screens/Auth/RegisterScreen';
-import ForgotPassword from '@/components/Auth/ForgotPassword';
-import ResetPasswordVerification from '@/components/Auth/ResetPasswordVerification';
-import ResetPassword from '@/components/Auth/ResetPassword';
+import { startSsoAuth, submitSsoCode, applyAuthResponse, getSsoRedirectUrl } from '@/lib/auth/sso';
+import type { AppDispatch } from '@/redux/store';
+import { showToast } from '@/lib/toast/showToast';
+import { WebView } from 'react-native-webview';
+import config from '@/config';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-} from 'react-native-reanimated';
-
-type AuthTab = 'login' | 'register';
-type AuthFlow =
-  | 'login'
-  | 'register'
-  | 'forgotPassword'
-  | 'resetPasswordVerification'
-  | 'resetPassword';
-
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-
-function AnimatedTabBar({
-  activeTab,
-  onTabChange,
-}: {
-  activeTab: AuthTab;
-  onTabChange: (tab: AuthTab) => void;
-}) {
-  const { t } = useTranslation();
-  const { colors, isDark } = useTheme();
-  const direction = useDirection();
-  const [tabWidth, setTabWidth] = useState(0);
-
-  const indicatorLeft = useSharedValue(0);
-  const loginScale = useSharedValue(1);
-  const registerScale = useSharedValue(1);
-
-  const tabs: { key: AuthTab; label: string; icon: keyof typeof Ionicons.glyphMap }[] = direction.isRTL
-    ? [
-        { key: 'register', label: t('Register'), icon: 'person-add-outline' },
-        { key: 'login', label: t('user.login'), icon: 'log-in-outline' },
-      ]
-    : [
-        { key: 'login', label: t('user.login'), icon: 'log-in-outline' },
-        { key: 'register', label: t('Register'), icon: 'person-add-outline' },
-      ];
-
-  const handleLayout = useCallback((e: LayoutChangeEvent) => {
-    setTabWidth(e.nativeEvent.layout.width / 2);
-  }, []);
-
-  useEffect(() => {
-    const isFirst = direction.isRTL
-      ? activeTab === 'register'
-      : activeTab === 'login';
-    indicatorLeft.value = withTiming(isFirst ? 4 : tabWidth, { duration: 220 });
-  }, [activeTab, tabWidth, direction.isRTL, indicatorLeft]);
-
-  const indicatorStyle = useAnimatedStyle(() => ({
-    left: indicatorLeft.value,
-    width: tabWidth - 8,
-  }));
-  const loginStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: loginScale.value }],
-  }));
-  const registerStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: registerScale.value }],
-  }));
-
-  return (
-    <View
-      onLayout={handleLayout}
-      style={{
-        flexDirection: 'row',
-        backgroundColor: isDark ? colors.surface : '#edf7f1',
-        marginHorizontal: 16,
-        marginTop: 12,
-        marginBottom: 2,
-        borderRadius: 18,
-        padding: 4,
-        position: 'relative',
-        borderWidth: 1,
-        borderColor: colors.border,
-      }}
-    >
-      <Animated.View
-        style={[
-          indicatorStyle,
-          {
-            position: 'absolute',
-            top: 4,
-            bottom: 4,
-            borderRadius: 14,
-            overflow: 'hidden',
-          },
-        ]}
-      >
-        <LinearGradient
-          colors={isDark ? ['#162019', '#1a2a22'] : ['#ffffff', '#f8fffb']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={StyleSheet.absoluteFill}
-        />
-      </Animated.View>
-
-      {tabs.map((tab) => {
-        const scale = tab.key === 'login' ? loginScale : registerScale;
-        return (
-          <AnimatedPressable
-            key={tab.key}
-            onPress={() => onTabChange(tab.key)}
-            onPressIn={() => {
-              scale.value = withTiming(0.98, { duration: 120 });
-            }}
-            onPressOut={() => {
-              scale.value = withTiming(1, { duration: 160 });
-            }}
-            style={[
-              {
-                flex: 1,
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexDirection: direction.isRTL ? 'row-reverse' : 'row',
-                gap: 7,
-                paddingVertical: 12,
-                zIndex: 1,
-              },
-              tab.key === 'login' ? loginStyle : registerStyle,
-            ]}
-          >
-            <Ionicons
-              name={tab.icon}
-              size={17}
-              color={activeTab === tab.key ? colors.primary : colors.textTertiary}
-            />
-            <Text
-              style={{
-                fontSize: 14,
-                fontFamily: 'IRANSans-Bold',
-                color: activeTab === tab.key ? colors.primary : colors.textTertiary,
-                writingDirection: direction.dir,
-              }}
-            >
-              {tab.label}
-            </Text>
-          </AnimatedPressable>
-        );
-      })}
-    </View>
-  );
-}
+import * as ExpoLinking from 'expo-linking';
 
 export default function AuthScreen() {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const direction = useDirection();
-  const params = useLocalSearchParams<{ flow?: AuthFlow }>();
+  const dispatch = useDispatch<AppDispatch>();
+  const [showWebView, setShowWebView] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const initialFlow: AuthFlow = useMemo(() => params.flow || 'login', [params.flow]) as AuthFlow;
+  const handleSsoLogin = () => {
+    setShowWebView(true);
+  };
 
-  const [activeTab, setActiveTab] = useState<AuthTab>(initialFlow === 'register' ? 'register' : 'login');
-  const [authFlow, setAuthFlow] = useState<AuthFlow>(initialFlow);
+  const handleWebViewNavigation = async (navState: any) => {
+    const { url } = navState;
+    if (url.includes('LoginFromSso') || url.includes('/sso/callback')) {
+      setShowWebView(false);
+      setLoading(true);
+      try {
+        const parsed = ExpoLinking.parse(url);
+        const code = Array.isArray(parsed.queryParams?.code) ? String(parsed.queryParams.code[0]) : String(parsed.queryParams?.code || '');
+        const error = Array.isArray(parsed.queryParams?.error) ? String(parsed.queryParams.error[0]) : String(parsed.queryParams?.error || '');
+        const state = Array.isArray(parsed.queryParams?.state) ? String(parsed.queryParams.state[0]) : String(parsed.queryParams?.state || '');
+        
+        if (!code && !error) {
+          showToast({ type: 'error', message: 'Authorization code missing', fallback: 'Error', language: 'en' });
+          return;
+        }
 
-  const [phone, setPhone] = useState('');
-  const [challenge, setChallenge] = useState('');
-  const [verifyCode, setVerifyCode] = useState('');
+        const data = await submitSsoCode(code, state, error);
+        await applyAuthResponse(data, dispatch);
+        showToast({ type: 'success', message: data, fallback: 'Success', language: 'fa' });
 
-  const goBackLogic = () => {
-    if (authFlow !== 'login' && authFlow !== 'register') {
-      setAuthFlow('login');
-      setActiveTab('login');
-      return;
+        const redirectUrl = getSsoRedirectUrl(data);
+        if (redirectUrl) {
+          router.replace({ pathname: '/doctors-consultation', params: { url: redirectUrl } });
+          return;
+        }
+        
+        router.replace('/(tabs)/home');
+      } catch (err: any) {
+        showToast({ type: 'error', message: err, fallback: 'Error', language: 'fa' });
+      } finally {
+        setLoading(false);
+      }
     }
-    router.back();
-  };
-
-  const toForgot = () => setAuthFlow('forgotPassword');
-  const onChallengeReceived = (ch: string, ph: string) => {
-    setChallenge(ch);
-    setPhone(ph);
-    setAuthFlow('resetPasswordVerification');
-  };
-  const onOtpVerified = (code: string) => {
-    setVerifyCode(code);
-    setAuthFlow('resetPassword');
-  };
-  const onPasswordChanged = () => {
-    setAuthFlow('login');
-    setActiveTab('login');
-  };
-
-  const showTabs = authFlow === 'login' || authFlow === 'register';
-
-  const handleTabChange = (tab: AuthTab) => {
-    setActiveTab(tab);
-    setAuthFlow(tab);
   };
 
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: colors.background,
-      }}
-    >
-      {/* Header */}
-      <BackHeader
-        title={
-          authFlow === 'forgotPassword' ? t('forgotPassword')
-          : authFlow === 'resetPasswordVerification' ? t('verifyCode')
-          : authFlow === 'resetPassword' ? t('resetPassword')
-          : t('account')
-        }
-        onBackPress={goBackLogic}
-      />
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <BackHeader title={t('account')} onBackPress={() => router.back()} />
 
-      {/* Animated Pill Tab Bar */}
-      {showTabs && (
-        <View style={[shadows.sm, { backgroundColor: colors.background, paddingBottom: 8 }]}>
-          <AnimatedTabBar
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24 }}>
+        <View style={{
+          width: '100%',
+          maxWidth: 400,
+          backgroundColor: isDark ? colors.surface : '#ffffff',
+          borderRadius: 16,
+          padding: 24,
+          alignItems: 'center',
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.1,
+          shadowRadius: 12,
+          elevation: 5,
+          borderWidth: 1,
+          borderColor: colors.border
+        }}>
+          <Text style={{
+            fontSize: 18,
+            fontFamily: 'IRANSans-Bold',
+            color: colors.text,
+            marginBottom: 8,
+            textAlign: 'center'
+          }}>
+            {t('accountLogin')}
+          </Text>
+          <Text style={{
+            fontSize: 14,
+            fontFamily: 'IRANSans',
+            color: colors.textSecondary,
+            marginBottom: 32,
+            textAlign: 'center',
+            lineHeight: 24
+          }}>
+            برای ورود به حساب کاربری خود یا ثبت نام، به صفحه ورود یکپارچه منتقل خواهید شد.
+          </Text>
+
+          <Pressable
+            onPress={handleSsoLogin}
+            disabled={loading}
+            style={({ pressed }) => ({
+              backgroundColor: colors.primary,
+              width: '100%',
+              paddingVertical: 14,
+              borderRadius: 12,
+              alignItems: 'center',
+              justifyContent: 'center',
+              opacity: pressed || loading ? 0.8 : 1,
+            })}
+          >
+            {loading ? (
+              <ActivityIndicator color="#ffffff" size="small" />
+            ) : (
+              <Text style={{
+                color: '#ffffff',
+                fontFamily: 'IRANSans-Bold',
+                fontSize: 16
+              }}>
+                ورود / ثبت نام با SSO
+              </Text>
+            )}
+          </Pressable>
+        </View>
+      </View>
+      <Modal visible={showWebView} animationType="slide" onRequestClose={() => setShowWebView(false)}>
+        <View style={{ flex: 1, backgroundColor: colors.background }}>
+          <View style={{ height: 50, backgroundColor: colors.surface, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: colors.border, marginTop: 40 }}>
+            <Pressable onPress={() => setShowWebView(false)} style={{ padding: 8 }}>
+              <Ionicons name="close" size={24} color={colors.text} />
+            </Pressable>
+            <Text style={{ flex: 1, textAlign: 'center', fontFamily: 'IRANSans-Bold', color: colors.text, fontSize: 16, marginRight: 40 }}>
+              ورود به سیستم
+            </Text>
+          </View>
+          <WebView
+            style={{ flex: 1 }}
+            source={{ uri: config.sepehrSalamatSsoUrl }}
+            onNavigationStateChange={handleWebViewNavigation}
+            incognito={true}
+            javaScriptEnabled={true}
+            domStorageEnabled={true}
+            startInLoadingState={true}
+            renderLoading={() => <ActivityIndicator size="large" color={colors.primary} style={{ position: 'absolute', top: '50%', left: '50%', marginLeft: -18, marginTop: -18 }} />}
           />
         </View>
-      )}
-
-      {/* Content */}
-      <View style={{ flex: 1 }}>
-        {authFlow === 'forgotPassword' && (
-          <ForgotPassword onChallengeReceived={onChallengeReceived} />
-        )}
-
-        {authFlow === 'resetPasswordVerification' && (
-          <ResetPasswordVerification
-            phone={phone}
-            onVerified={onOtpVerified}
-            onPhoneEdit={() => setAuthFlow('forgotPassword')}
-          />
-        )}
-
-        {authFlow === 'resetPassword' && (
-          <ResetPassword
-            challenge={challenge}
-            verifyCode={verifyCode}
-            phone={phone}
-            onPasswordChanged={onPasswordChanged}
-          />
-        )}
-
-        {authFlow === 'login' && (
-          <View style={{ flex: 1 }}>
-            <LoginScreen />
-            <Pressable
-              onPress={toForgot}
-              style={{ paddingHorizontal: 20, paddingVertical: 14 }}
-            >
-              <Text style={{
-                color: colors.primary,
-                textAlign: 'center',
-                fontFamily: 'IRANSans',
-                fontSize: 14,
-                writingDirection: direction.dir,
-              }}>
-                {t('forgotPassword')}
-              </Text>
-            </Pressable>
-          </View>
-        )}
-
-        {authFlow === 'register' && <RegisterScreen />}
-      </View>
+      </Modal>
     </View>
   );
 }
